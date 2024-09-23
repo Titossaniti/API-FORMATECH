@@ -20,6 +20,9 @@ public class User {
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private UserInfo userInfo;
+
     public Long getId() {
         return id;
     }
@@ -50,6 +53,12 @@ public class User {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+    public UserInfo getUserInfo() {
+        return userInfo;
+    }
+    public void setUserInfo(UserInfo userInfo) {
+        this.userInfo = userInfo;
     }
 
 }
