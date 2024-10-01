@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/session-modules")
+@RequestMapping("/api/session-with-modules")
 public class SessionModuleController {
 
     private final SessionModuleService sessionModuleService;
