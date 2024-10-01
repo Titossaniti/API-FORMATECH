@@ -1,6 +1,7 @@
 package com.example.apiformatech.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
 import java.util.Date;
 
@@ -12,21 +13,32 @@ public class StudentModuleComment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "L'étudiant est obligatoire")
     @ManyToOne
     @JoinColumn(name = "student_id", nullable = false)
     private User student;
 
+    @NotNull(message = "Le formateur est obligatoire")
     @ManyToOne
     @JoinColumn(name = "trainer_id", nullable = false)
     private User trainer;
 
+    @NotNull(message = "Le module de session est obligatoire")
     @ManyToOne
     @JoinColumn(name = "session_module_id", nullable = false)
     private SessionModule sessionModule;
 
+    @Min(value = 0, message = "La note doit être au moins 0")
+    @Max(value = 20, message = "La note ne peut pas dépasser 20")
     private int grade;
+
+    @Size(max = 255, message = "Le commentaire ne peut pas dépasser 255 caractères")
     private String comment;
+
+    @PastOrPresent(message = "La date de création doit être dans le passé ou le présent")
     private Date createdAt;
+
+    @PastOrPresent(message = "La date de mise à jour doit être dans le passé ou le présent")
     private Date updatedAt;
 
     public Long getId() {

@@ -2,6 +2,7 @@ package com.example.apiformatech.model;
 
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
 @Entity
 @Table(name = "users")
@@ -10,12 +11,17 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "L'email est obligatoire")
+    @Email(message = "L'email doit être valide")
     @Column(nullable = false, unique = true)
     private String email;
 
+    @NotNull(message = "Le mot de passe est obligatoire")
+    @Size(min = 6, message = "Le mot de passe doit comporter au moins 6 caractères")
     @Column(nullable = false)
     private String password;
 
+    @NotNull(message = "Le rôle est obligatoire")
     @ManyToOne
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;

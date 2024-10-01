@@ -1,6 +1,7 @@
 package com.example.apiformatech.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
 @Entity
 @Table(name = "establishments")
@@ -10,11 +11,27 @@ public class Establishment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "Le nom de l'établissement est obligatoire")
+    @Size(min = 1, max = 100, message = "Le nom doit contenir entre 1 et 100 caractères")
     private String name;
+
+    @NotNull(message = "La commune est obligatoire")
+    @Size(min = 1, max = 50, message = "La ville doit contenir entre 1 et 50 caractères")
     private String city;
+
+    @NotNull(message = "Le code postal est obligatoire")
     private String postalCode;
+
+    @NotNull(message = "L'adresse est obligatoire")
+    @Size(min = 1, max = 255, message = "L'adresse doit contenir entre 1 et 255 caractères")
     private String address;
+
+    @NotNull(message = "Le numéro de téléphone est obligatoire")
+    @Pattern(regexp = "^\\+?[0-9. ()-]{7,25}$", message = "Le numéro de téléphone est invalide")
     private String phone;
+
+    @NotNull(message = "L'email est obligatoire")
+    @Email(message = "L'email doit être valide")
     private String email;
 
     public Long getId() {

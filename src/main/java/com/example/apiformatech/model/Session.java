@@ -1,6 +1,7 @@
 package com.example.apiformatech.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
 import java.util.Date;
 
@@ -12,13 +13,21 @@ public class Session {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "L'établissement est obligatoire")
     @ManyToOne
     @JoinColumn(name = "establishment_id", nullable = false)
     private Establishment establishment;
 
     private String type;
+
+    @Size(max = 255, message = "La description ne peut pas dépasser 255 caractères")
     private String description;
+
+    @NotNull(message = "La date de début est obligatoire")
+    @FutureOrPresent(message = "La date de début doit être dans le futur ou le présent")
     private Date startDate;
+
+    @Future(message = "La date de fin doit être dans le futur")
     private Date endDate;
 
     public Long getId() {

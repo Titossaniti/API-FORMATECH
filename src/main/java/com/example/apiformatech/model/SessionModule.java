@@ -1,6 +1,7 @@
 package com.example.apiformatech.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 
 
 @Entity
@@ -11,14 +12,17 @@ public class SessionModule {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "La session est obligatoire")
     @ManyToOne
     @JoinColumn(name = "session_id", nullable = false)
     private Session session;
 
+    @NotNull(message = "Le module est obligatoire")
     @ManyToOne
     @JoinColumn(name = "module_id", nullable = false)
     private Module module;
 
+    @NotNull(message = "Le formateur est obligatoire")
     @ManyToOne
     @JoinColumn(name = "trainer_id", nullable = false)
     private User trainer;

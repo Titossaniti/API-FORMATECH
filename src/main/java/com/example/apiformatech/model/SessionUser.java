@@ -1,6 +1,7 @@
 package com.example.apiformatech.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "session_users")
@@ -10,10 +11,12 @@ public class SessionUser {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "La session est obligatoire")
     @ManyToOne
     @JoinColumn(name = "session_id", nullable = false)
     private Session session;
 
+    @NotNull(message = "L'utilisateur est obligatoire")
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
