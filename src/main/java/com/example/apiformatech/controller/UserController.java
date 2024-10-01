@@ -23,37 +23,53 @@ public class UserController {
     @PostMapping("/register")
     public ResponseEntity<User> registerUser(@RequestBody User user) {
         User savedUser = userService.saveUser(user);
-        return ResponseEntity.ok(savedUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
     }
+
 
     // Récupérer un utilisateur par ID
     @GetMapping("/{id}")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
         return userService.getUserById(id)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
+
 
     // Récupérer un utilisateur par email
     @GetMapping("/email/{email}")
     public ResponseEntity<User> getUserByEmail(@PathVariable String email) {
         return userService.getUserByEmail(email)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     // Récupérer tous les utilisateurs
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+        List<User> users = userService.getAllUsers();
+        if (users.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        }
+        return ResponseEntity.ok(users);
     }
+
 
     // Assigner un rôle à un utilisateur
     @PutMapping("/{email}/role/{role}")
     public ResponseEntity<User> assignRoleToUser(@PathVariable String email, @PathVariable String role) {
-        User updatedUser = userService.assignRoleToUser(email, role);
-        return ResponseEntity.ok(updatedUser);
+        try {
+            User updatedUser = userService.assignRoleToUser(email, role);
+            return ResponseEntity.ok(updatedUser);
+        } catch (IllegalArgumentException e) {
+            // Par exemple, si le rôle est invalide
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        } catch (RuntimeException e) {
+            // Si l'utilisateur n'est pas trouvé
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
     }
+
 
     // Mettre à jour les informations de login et les infos personnelles d'un utilisateur
     @PutMapping("/{id}")
@@ -63,18 +79,19 @@ public class UserController {
             @RequestBody UserInfo updatedInfo) {
 
         try {
-            // Appelle la méthode du service pour mettre à jour User et UserInfo
             User user = userService.updateUserAndInfo(id, updatedUser, updatedInfo);
-            return ResponseEntity.ok(user); // Retourne l'utilisateur mis à jour
+            return ResponseEntity.ok(user);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // Si l'utilisateur n'est pas trouvé, retourne un 404
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
+
 
     // Supprimer un utilisateur par ID
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+
 }

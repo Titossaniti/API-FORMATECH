@@ -69,7 +69,6 @@ public class UserService {
                 // Met à jour les informations dans l'objet UserInfo existant
                 existingUserInfo.setLastname(updatedInfo.getLastname());
                 existingUserInfo.setFirstname(updatedInfo.getFirstname());
-                existingUserInfo.setCivility(updatedInfo.getCivility());
                 existingUserInfo.setPhone(updatedInfo.getPhone());
                 existingUserInfo.setBirthdate(updatedInfo.getBirthdate());
 
