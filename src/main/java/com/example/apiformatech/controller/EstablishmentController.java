@@ -2,12 +2,10 @@ package com.example.apiformatech.controller;
 
 import com.example.apiformatech.model.Establishment;
 import com.example.apiformatech.service.EstablishmentService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/establishments")
@@ -19,37 +17,38 @@ public class EstablishmentController {
         this.establishmentService = establishmentService;
     }
 
-    /**
-     * Crée un nouvel établissement.
-     * @param establishment L'objet établissement à créer.
-     * @return L'établissement créé.
-     */
+    // Créer ou mettre à jour un établissement
     @PostMapping
-    public ResponseEntity<Establishment> createEstablishment(@RequestBody Establishment establishment) {
+    public ResponseEntity<Establishment> createOrUpdateEstablishment(@RequestBody Establishment establishment) {
         Establishment savedEstablishment = establishmentService.saveEstablishment(establishment);
-        return ResponseEntity.ok(savedEstablishment); // HTTP 200 avec l'établissement créé.
+        return ResponseEntity.ok(savedEstablishment);
     }
 
-//    * Récupère la liste de tous les établissements.
+    // Récupérer tous les établissements
     @GetMapping
-    public List<Establishment> getAllEstablishments() {
-        return establishmentService.getAllEstablishments(); // Renvoie la liste de tous les établissements.
+    public ResponseEntity<List<Establishment>> getAllEstablishments() {
+        return ResponseEntity.ok(establishmentService.getAllEstablishments());
     }
 
+    // Récupérer un établissement par ID
     @GetMapping("/{id}")
     public ResponseEntity<Establishment> getEstablishmentById(@PathVariable Long id) {
-        Optional<Establishment> establishment = establishmentService.getEstablishmentById(id);
-        return establishment.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        return establishmentService.getEstablishmentById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    /**
-     * Supprime un établissement par ID.
-     * @param id L'ID de l'établissement à supprimer.
-     */
+    // Mettre à jour un établissement
+    @PutMapping("/{id}")
+    public ResponseEntity<Establishment> updateEstablishment(@PathVariable Long id, @RequestBody Establishment establishment) {
+        Establishment updatedEstablishment = establishmentService.updateEstablishment(id, establishment);
+        return ResponseEntity.ok(updatedEstablishment);
+    }
+
+    // Supprimer un établissement
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEstablishment(@PathVariable Long id) {
-        establishmentService.deleteEstablishment(id); // Supprime l'établissement via le service.
-        return ResponseEntity.noContent().build(); // HTTP 204 No Content pour indiquer que la suppression a été effectuée.
+        establishmentService.deleteEstablishment(id);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -2,12 +2,10 @@ package com.example.apiformatech.controller;
 
 import com.example.apiformatech.model.Module;
 import com.example.apiformatech.service.ModuleService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/modules")
@@ -19,44 +17,40 @@ public class ModuleController {
         this.moduleService = moduleService;
     }
 
-    /**
-     * Crée un nouveau module.
-     * @param module L'objet module à créer.
-     * @return Le module créé.
-     */
+    // Créer ou mettre à jour un module
     @PostMapping
-    public ResponseEntity<Module> createModule(@RequestBody Module module) {
+    public ResponseEntity<Module> createOrUpdateModule(@RequestBody Module module) {
         Module savedModule = moduleService.saveModule(module);
         return ResponseEntity.ok(savedModule);
     }
 
-    /**
-     * Récupère tous les modules.
-     *
-     * @return La liste des modules.
-     */
+    // Récupérer tous les modules
     @GetMapping
-    public List<Module> getAllModules() {
-        return moduleService.getAllModules();
-    }
-    /**
-     * Récupère un module par l'ID
-     * */
-    @GetMapping("/{id}")
-    public ResponseEntity<Module> getModuleById(@PathVariable Long id) {
-        Optional<Module> module = moduleService.getModuleById(id);
-        return module.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    public ResponseEntity<List<Module>> getAllModules() {
+        return ResponseEntity.ok(moduleService.getAllModules());
     }
 
-    /**
-     * Supprime un module par ID.
-     * @param id L'ID du module à supprimer.
-     */
+    // Récupérer un module par ID
+    @GetMapping("/{id}")
+    public ResponseEntity<Module> getModuleById(@PathVariable Long id) {
+        return moduleService.getModuleById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // Mettre à jour un module
+    @PutMapping("/{id}")
+    public ResponseEntity<Module> updateModule(@PathVariable Long id, @RequestBody Module module) {
+        Module updatedModule = moduleService.updateModule(id, module);
+        return ResponseEntity.ok(updatedModule);
+    }
+
+    // Supprimer un module
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteModule(@PathVariable Long id) {
         moduleService.deleteModule(id);
         return ResponseEntity.noContent().build();
     }
 }
+
 

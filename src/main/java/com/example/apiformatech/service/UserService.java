@@ -34,10 +34,14 @@ public class UserService {
     public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
     }
+    // Méthode pour lister l'ensemble des users
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
 
-    // Méthode pour récupérer un rôle par son nom
-    public Role getRoleByName(String roleTitle) {
-        return roleRepository.findByTitle(roleTitle).orElseThrow(() -> new RuntimeException("Role not found"));
+    // Méthode pour récupérer un utilisateur par ID
+    public Optional<User> getUserById(Long id) {
+        return userRepository.findById(id); // Utilise le repository pour trouver l'utilisateur par ID
     }
 
     // Méthode pour assigner un rôle à un utilisateur
@@ -48,40 +52,40 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    // Méthode pour sauvegarder un utilisateur avec ses informations personnelles
-    public User saveUserWithInfo(User user, UserInfo userInfo) {
-        user.setUserInfo(userInfo);
-        userInfo.setUser(user);
-        userInfoRepository.save(userInfo);
-        return userRepository.save(user);
-    }
-    // Méthode pour mettre à jour les informations d'un utilisateur
-    public User updateUser(Long id, User updatedUser) {
+    // Méthode pour sauvegarder un utilisateur avec ses informations et ses info personnelles
+    public User updateUserAndInfo(Long id, User updatedUser, UserInfo updatedInfo) {
         User existingUser = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Met à jour les informations de l'utilisateur
+        // Mise à jour des informations de base de User
         existingUser.setEmail(updatedUser.getEmail());
         existingUser.setPassword(updatedUser.getPassword());
 
+        // Si les informations personnelles (UserInfo) sont présentes, on les met à jour
+        if (updatedInfo != null) {
+            UserInfo existingUserInfo = existingUser.getUserInfo();
+
+            if (existingUserInfo != null) {
+
+                // Met à jour les informations dans l'objet UserInfo existant
+                existingUserInfo.setLastname(updatedInfo.getLastname());
+                existingUserInfo.setFirstname(updatedInfo.getFirstname());
+                existingUserInfo.setCivility(updatedInfo.getCivility());
+                existingUserInfo.setPhone(updatedInfo.getPhone());
+                existingUserInfo.setBirthdate(updatedInfo.getBirthdate());
+
+                userInfoRepository.save(existingUserInfo); // Sauvegarde les modifications de UserInfo
+            } else {
+                // Si aucun UserInfo n'existe, on assigne les nouvelles informations à l'utilisateur
+                updatedInfo.setUser(existingUser);
+                userInfoRepository.save(updatedInfo);
+                existingUser.setUserInfo(updatedInfo); // Lien entre User et UserInfo
+            }
+        }
+
+        // Sauvegarde l'utilisateur avec les nouvelles informations
         return userRepository.save(existingUser);
     }
-    // Méthode pour mettre à jour les informations personnelles d'un utilisateur (dans UserInfo)
-    public User updateUserInfo(Long userId, UserInfo updatedInfo) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
-        user.setUserInfo(updatedInfo);
-        updatedInfo.setUser(user);
-                userInfoRepository.save(updatedInfo);
-        return userRepository.save(user);
-    }
-    // Méthode pour lister l'ensemble des users
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
-    }
 
-    // Méthode pour récupérer un utilisateur par ID
-    public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id); // Utilise le repository pour trouver l'utilisateur par ID
-    }
 
     // Méthode pour supprimer un utilisateur
     public void deleteUser(Long id) {

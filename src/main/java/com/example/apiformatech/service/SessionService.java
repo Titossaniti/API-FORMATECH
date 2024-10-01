@@ -58,14 +58,10 @@ public class SessionService {
         return sessionRepository.save(existingSession);
     }
 
-
     // Méthode pour supprimer une session
     public void deleteSession(Long id) {
         sessionRepository.deleteById(id);
     }
 
-    public Optional<Session> findById(Long id) {
-        return sessionRepository.findById(id);
-    }
 }
 

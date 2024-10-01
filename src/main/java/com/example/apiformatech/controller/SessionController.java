@@ -2,12 +2,10 @@ package com.example.apiformatech.controller;
 
 import com.example.apiformatech.model.Session;
 import com.example.apiformatech.service.SessionService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/sessions")
@@ -19,37 +17,42 @@ public class SessionController {
         this.sessionService = sessionService;
     }
 
-    /**
-     * Crée une nouvelle session de formation.
-     * @param session L'objet session à créer.
-     * @return La session créée.
-     */
+    // Créer ou mettre à jour une session
     @PostMapping
-    public ResponseEntity<Session> createSession(@RequestBody Session session) {
+    public ResponseEntity<Session> createOrUpdateSession(@RequestBody Session session) {
         Session savedSession = sessionService.saveSession(session);
         return ResponseEntity.ok(savedSession);
     }
 
-    /**
-     * Récupère toutes les sessions de formation.
-     * @return La liste des sessions.
-     */
+    // Récupérer toutes les sessions
     @GetMapping
-    public List<Session> getAllSessions() {
-        return sessionService.getAllSessions();
+    public ResponseEntity<List<Session>> getAllSessions() {
+        return ResponseEntity.ok(sessionService.getAllSessions());
     }
+
+    // Récupérer une session par ID
     @GetMapping("/{id}")
     public ResponseEntity<Session> getSessionById(@PathVariable Long id) {
-        Optional<Session> session = sessionService.findById(id);
-        return session.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        return sessionService.getSessionById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
+    // Assigner une session à un établissement
+    @PutMapping("/{sessionId}/establishment/{establishmentId}")
+    public ResponseEntity<Session> assignSessionToEstablishment(@PathVariable Long sessionId, @PathVariable Long establishmentId) {
+        Session updatedSession = sessionService.assignSessionToEstablishment(sessionId, establishmentId);
+        return ResponseEntity.ok(updatedSession);
+    }
 
-    /**
-     * Supprime une session de formation par ID.
-     * @param id L'ID de la session à supprimer.
-     */
+    // Mettre à jour une session
+    @PutMapping("/{id}")
+    public ResponseEntity<Session> updateSession(@PathVariable Long id, @RequestBody Session session) {
+        Session updatedSession = sessionService.updateSession(id, session);
+        return ResponseEntity.ok(updatedSession);
+    }
+
+    // Supprimer une session
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSession(@PathVariable Long id) {
         sessionService.deleteSession(id);

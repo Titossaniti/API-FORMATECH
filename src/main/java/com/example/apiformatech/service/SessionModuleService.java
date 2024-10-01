@@ -28,11 +28,6 @@ public class SessionModuleService {
         this.userRepository = userRepository;
     }
 
-    // Méthode pour sauvegarder un session-module
-    public SessionModule saveSessionModule(SessionModule sessionModule) {
-        return sessionModuleRepository.save(sessionModule);
-    }
-
     // Méthode pour associer un module et un formateur à une session
     public SessionModule assignModuleToSession(Long sessionId, Long moduleId, Long trainerId) {
         Session session = sessionRepository.findById(sessionId).orElseThrow(() -> new RuntimeException("Session not found"));
