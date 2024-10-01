@@ -8,6 +8,7 @@ import com.example.apiformatech.repository.UserInfoRepository;
 import com.example.apiformatech.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -63,4 +64,15 @@ public class UserService {
                 userInfoRepository.save(updatedInfo);
         return userRepository.save(user);
     }
+
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    // Méthode pour récupérer un utilisateur par ID
+    public Optional<User> getUserById(Long id) {
+        return userRepository.findById(id); // Utilise le repository pour trouver l'utilisateur par ID
+    }
+
+
 }
