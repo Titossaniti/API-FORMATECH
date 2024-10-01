@@ -2,10 +2,12 @@ package com.example.apiformatech.controller;
 
 import com.example.apiformatech.model.Module;
 import com.example.apiformatech.service.ModuleService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/modules")
@@ -36,6 +38,15 @@ public class ModuleController {
     @GetMapping
     public List<Module> getAllModules() {
         return moduleService.getAllModules();
+    }
+    /**
+     * Récupère un module par l'ID
+     * */
+    @GetMapping("/{id}")
+    public ResponseEntity<Module> getModuleById(@PathVariable Long id) {
+        Optional<Module> module = moduleService.getModuleById(id);
+        return module.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     /**

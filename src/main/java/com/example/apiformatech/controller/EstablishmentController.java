@@ -2,10 +2,12 @@ package com.example.apiformatech.controller;
 
 import com.example.apiformatech.model.Establishment;
 import com.example.apiformatech.service.EstablishmentService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/establishments")
@@ -32,6 +34,13 @@ public class EstablishmentController {
     @GetMapping
     public List<Establishment> getAllEstablishments() {
         return establishmentService.getAllEstablishments(); // Renvoie la liste de tous les établissements.
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Establishment> getEstablishmentById(@PathVariable Long id) {
+        Optional<Establishment> establishment = establishmentService.getEstablishmentById(id);
+        return establishment.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     /**

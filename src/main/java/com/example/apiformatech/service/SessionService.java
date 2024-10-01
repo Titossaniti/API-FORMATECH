@@ -43,10 +43,29 @@ public class SessionService {
         session.setEstablishment(establishment);
         return sessionRepository.save(session);
     }
+    // Méthode pour mettre à jour une session de formation
+    public Session updateSession(Long id, Session updatedSession) {
+        Session existingSession = sessionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Session not found"));
+
+        // Met à jour les informations de la session
+        existingSession.setType(updatedSession.getType());
+        existingSession.setDescription(updatedSession.getDescription());
+        existingSession.setStartDate(updatedSession.getStartDate());
+        existingSession.setEndDate(updatedSession.getEndDate());
+        existingSession.setEstablishment(updatedSession.getEstablishment());
+
+        return sessionRepository.save(existingSession);
+    }
+
 
     // Méthode pour supprimer une session
     public void deleteSession(Long id) {
         sessionRepository.deleteById(id);
+    }
+
+    public Optional<Session> findById(Long id) {
+        return sessionRepository.findById(id);
     }
 }
 

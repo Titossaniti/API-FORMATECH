@@ -32,9 +32,27 @@ public class EstablishmentService {
         return establishmentRepository.findById(id);
     }
 
+    // Méthode pour mettre à jour un établissement par ID
+    public Establishment updateEstablishment(Long id, Establishment updatedEstablishment) {
+        Establishment existingEstablishment = establishmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Establishment not found"));
+
+        // Met à jour les informations de l'établissement
+        existingEstablishment.setName(updatedEstablishment.getName());
+        existingEstablishment.setCity(updatedEstablishment.getCity());
+        existingEstablishment.setPostalCode(updatedEstablishment.getPostalCode());
+        existingEstablishment.setAddress(updatedEstablishment.getAddress());
+        existingEstablishment.setPhone(updatedEstablishment.getPhone());
+        existingEstablishment.setEmail(updatedEstablishment.getEmail());
+
+        return establishmentRepository.save(existingEstablishment);
+    }
+
+
     // Méthode pour supprimer un établissement par ID
     public void deleteEstablishment(Long id) {
         establishmentRepository.deleteById(id);
     }
+
 }
 

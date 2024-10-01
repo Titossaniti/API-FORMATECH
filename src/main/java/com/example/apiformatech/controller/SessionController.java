@@ -2,10 +2,12 @@ package com.example.apiformatech.controller;
 
 import com.example.apiformatech.model.Session;
 import com.example.apiformatech.service.SessionService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/sessions")
@@ -36,6 +38,13 @@ public class SessionController {
     public List<Session> getAllSessions() {
         return sessionService.getAllSessions();
     }
+    @GetMapping("/{id}")
+    public ResponseEntity<Session> getSessionById(@PathVariable Long id) {
+        Optional<Session> session = sessionService.findById(id);
+        return session.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
 
     /**
      * Supprime une session de formation par ID.

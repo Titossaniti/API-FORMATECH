@@ -34,6 +34,20 @@ public class StudentModuleCommentService {
         return studentModuleCommentRepository.findById(id);
     }
 
+    // Méthode pour mettre à jour un commentaire et une note
+    public StudentModuleComment updateComment(Long id, StudentModuleComment updatedComment) {
+        StudentModuleComment existingComment = studentModuleCommentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
+
+        // Met à jour les informations du commentaire
+        existingComment.setGrade(updatedComment.getGrade());
+        existingComment.setComment(updatedComment.getComment());
+        existingComment.setUpdatedAt(new Date()); // Met à jour la date de mise à jour
+
+        return studentModuleCommentRepository.save(existingComment);
+    }
+
+
     // Méthode pour supprimer un commentaire par son ID
     public void deleteComment(Long id) {
         studentModuleCommentRepository.deleteById(id);

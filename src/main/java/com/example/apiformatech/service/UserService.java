@@ -55,8 +55,17 @@ public class UserService {
         userInfoRepository.save(userInfo);
         return userRepository.save(user);
     }
+    // Méthode pour mettre à jour les informations d'un utilisateur
+    public User updateUser(Long id, User updatedUser) {
+        User existingUser = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
 
-    // Méthode pour mettre à jour les informations personnelles d'un utilisateur
+        // Met à jour les informations de l'utilisateur
+        existingUser.setEmail(updatedUser.getEmail());
+        existingUser.setPassword(updatedUser.getPassword());
+
+        return userRepository.save(existingUser);
+    }
+    // Méthode pour mettre à jour les informations personnelles d'un utilisateur (dans UserInfo)
     public User updateUserInfo(Long userId, UserInfo updatedInfo) {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
         user.setUserInfo(updatedInfo);
@@ -64,7 +73,7 @@ public class UserService {
                 userInfoRepository.save(updatedInfo);
         return userRepository.save(user);
     }
-
+    // Méthode pour lister l'ensemble des users
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
@@ -72,6 +81,11 @@ public class UserService {
     // Méthode pour récupérer un utilisateur par ID
     public Optional<User> getUserById(Long id) {
         return userRepository.findById(id); // Utilise le repository pour trouver l'utilisateur par ID
+    }
+
+    // Méthode pour supprimer un utilisateur
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
     }
 
 
