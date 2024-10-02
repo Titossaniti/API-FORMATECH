@@ -6,27 +6,52 @@ import com.example.apiformatech.model.UserInfo;
 import com.example.apiformatech.repository.RoleRepository;
 import com.example.apiformatech.repository.UserInfoRepository;
 import com.example.apiformatech.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserInfoRepository userInfoRepository;
+    private PasswordEncoder passwordEncoder;
 
-    // Injection des dépendances via le constructeur
-    public UserService(UserRepository userRepository, RoleRepository roleRepository, UserInfoRepository userInfoRepository) {
+    public UserService(PasswordEncoder passwordEncoder, UserRepository userRepository, RoleRepository roleRepository, UserInfoRepository userInfoRepository) {
+        this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.userInfoRepository = userInfoRepository;
     }
 
+    // Implémentation de la méthode de UserDetailsService
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+
+        // Créer un UserDetails à partir de l'utilisateur trouvé
+        return org.springframework.security.core.userdetails.User
+                .withUsername(user.getEmail())
+                .password(user.getPassword())
+                .authorities(user.getRole().getTitle())
+                .accountExpired(false)
+                .accountLocked(false)
+                .credentialsExpired(false)
+                .disabled(false)
+                .build();
+    }
+
     // Méthode pour sauvegarder un utilisateur
     public User saveUser(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
@@ -90,6 +115,5 @@ public class UserService {
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }
-
 
 }
