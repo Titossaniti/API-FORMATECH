@@ -30,14 +30,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable)// Désactive la protection CSRF car on utilise des tokens JWT
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/api/users").hasRole("USER")
-                        .anyRequest().authenticated())
+                        .requestMatchers("/auth/**").permitAll()// Permet l'accès libre aux routes d'authentification
+                        .requestMatchers("/api/users").hasRole("USER")// Restriction d'accès par rôle
+                        .anyRequest().authenticated())// Toutes les autres requêtes nécessitent une authentification
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))// Utilise des sessions stateless pour JWT
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);// Ajoute le filtre JWT
 
         return http.build();
     }
