@@ -1,5 +1,6 @@
 package com.example.apiformatech.service;
 
+import com.example.apiformatech.exception.ResourceNotFoundException;
 import com.example.apiformatech.model.Establishment;
 import com.example.apiformatech.repository.EstablishmentRepository;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,9 @@ public class EstablishmentService {
 
     // Méthode pour sauvegarder un établissement
     public Establishment saveEstablishment(Establishment establishment) {
+        if (establishmentRepository.existsByNameAndAddress(establishment.getName(), establishment.getAddress())) {
+            throw new ResourceNotFoundException("Un établissement avec le même nom et la même adresse existe déjà.");
+        }
         return establishmentRepository.save(establishment);
     }
 
@@ -35,7 +39,7 @@ public class EstablishmentService {
     // Méthode pour mettre à jour un établissement par ID
     public Establishment updateEstablishment(Long id, Establishment updatedEstablishment) {
         Establishment existingEstablishment = establishmentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Establishment not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Establishment not found"));
 
         // Met à jour les informations de l'établissement
         existingEstablishment.setName(updatedEstablishment.getName());
@@ -51,6 +55,9 @@ public class EstablishmentService {
 
     // Méthode pour supprimer un établissement par ID
     public void deleteEstablishment(Long id) {
+        if (!establishmentRepository.existsById(id)){
+            throw new ResourceNotFoundException("L'établissement avec l'ID" + id + " n'existe pas");
+        }
         establishmentRepository.deleteById(id);
     }
 

@@ -1,12 +1,13 @@
 package com.example.apiformatech.service;
 
+import com.example.apiformatech.exception.BadRequestException;
+import com.example.apiformatech.exception.ResourceNotFoundException;
 import com.example.apiformatech.model.Role;
 import com.example.apiformatech.model.User;
 import com.example.apiformatech.model.UserInfo;
 import com.example.apiformatech.repository.RoleRepository;
 import com.example.apiformatech.repository.UserInfoRepository;
 import com.example.apiformatech.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -35,7 +36,7 @@ public class UserService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found, email: " + email));
 
         // Créer un UserDetails à partir de l'utilisateur trouvé
         return org.springframework.security.core.userdetails.User
@@ -51,6 +52,9 @@ public class UserService implements UserDetailsService {
 
     // Méthode pour sauvegarder un utilisateur
     public User saveUser(User user) {
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new BadRequestException("Cet email est déjà utilisé.");
+        }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
@@ -71,15 +75,15 @@ public class UserService implements UserDetailsService {
 
     // Méthode pour assigner un rôle à un utilisateur
     public User assignRoleToUser(String email, String roleTitle) {
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
-        Role role = roleRepository.findByTitle(roleTitle).orElseThrow(() -> new RuntimeException("Role not found"));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        Role role = roleRepository.findByTitle(roleTitle).orElseThrow(() -> new ResourceNotFoundException("Role not found"));
         user.setRole(role);
         return userRepository.save(user);
     }
 
     // Méthode pour sauvegarder un utilisateur avec ses informations et ses info personnelles
     public User updateUserAndInfo(Long id, User updatedUser, UserInfo updatedInfo) {
-        User existingUser = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        User existingUser = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         // Mise à jour des informations de base de User
         existingUser.setEmail(updatedUser.getEmail());
@@ -113,6 +117,9 @@ public class UserService implements UserDetailsService {
 
     // Méthode pour supprimer un utilisateur
     public void deleteUser(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Utilisateur avec l'ID " + id + " n'existe pas");
+        }
         userRepository.deleteById(id);
     }
 

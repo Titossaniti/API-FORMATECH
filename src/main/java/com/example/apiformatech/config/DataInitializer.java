@@ -9,14 +9,18 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Date;
 
 @Component
 public class DataInitializer {
+    @Value("${superadmin.password}")
+    private String superAdminPassword;
 
     @Bean
     public CommandLineRunner initDatabase(RoleRepository roleRepository, UserRepository userRepository, PasswordEncoder passwordEncoder) {
+
         return args -> {
             // Création des rôles
             if (roleRepository.findByTitle("SUPERADMIN").isEmpty()) {
@@ -49,7 +53,9 @@ public class DataInitializer {
 
                 User superadmin = new User();
                 superadmin.setEmail("superadmin@mail.com");
-                superadmin.setPassword(passwordEncoder.encode("123abc"));
+
+                superadmin.setPassword(passwordEncoder.encode(superAdminPassword));
+
                 superadmin.setRole(superadminRole);
 
                 UserInfo userInfo = new UserInfo();

@@ -13,6 +13,11 @@ public class Session {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "Le nom de la session est obligatoire")
+    @Size(max = 100, message = "Le nom de la session ne peut pas dépasser 100 caractères")
+    @Column(unique = true)
+    private String name;
+
     @NotNull(message = "L'établissement est obligatoire")
     @ManyToOne
     @JoinColumn(name = "establishment_id", nullable = false)
@@ -44,6 +49,14 @@ public class Session {
 
     public void setEstablishment(Establishment establishment) {
         this.establishment = establishment;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getType() {

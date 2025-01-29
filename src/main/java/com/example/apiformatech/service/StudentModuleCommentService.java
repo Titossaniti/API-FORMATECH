@@ -1,5 +1,6 @@
 package com.example.apiformatech.service;
 
+import com.example.apiformatech.exception.ResourceNotFoundException;
 import com.example.apiformatech.model.StudentModuleComment;
 import com.example.apiformatech.repository.StudentModuleCommentRepository;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,9 @@ public class StudentModuleCommentService {
 
     // Méthode pour sauvegarder un commentaire et une note
     public StudentModuleComment saveComment(StudentModuleComment comment) {
+        if(studentModuleCommentRepository.existsByStudentAndTrainerAndSessionModule(comment.getStudent(), comment.getTrainer(), comment.getSessionModule())){
+            throw new ResourceNotFoundException("Le commentaire pour cet élève sur ce module existe déjà.");
+        }
         comment.setCreatedAt(new Date());
         return studentModuleCommentRepository.save(comment);
     }
@@ -37,7 +41,7 @@ public class StudentModuleCommentService {
     // Méthode pour mettre à jour un commentaire et une note
     public StudentModuleComment updateComment(Long id, StudentModuleComment updatedComment) {
         StudentModuleComment existingComment = studentModuleCommentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Comment not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
 
         // Met à jour les informations du commentaire
         existingComment.setGrade(updatedComment.getGrade());
@@ -50,6 +54,9 @@ public class StudentModuleCommentService {
 
     // Méthode pour supprimer un commentaire par son ID
     public void deleteComment(Long id) {
+        if (!studentModuleCommentRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Commentaire avec l'ID" + id + " n'existe pas");
+        }
         studentModuleCommentRepository.deleteById(id);
     }
 }

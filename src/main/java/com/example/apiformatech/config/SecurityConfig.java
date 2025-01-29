@@ -32,8 +32,13 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)// Désactive la protection CSRF car on utilise des tokens JWT
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()// Permet l'accès libre aux routes d'authentification
-                        .requestMatchers("/api/users").hasRole("USER")// Restriction d'accès par rôle
+
+                        .requestMatchers("/auth/**").permitAll() // Authentification accessible sans token
+                        .requestMatchers("/api/users/**").hasAnyRole("ADMIN", "SUPERADMIN") // Gestion des utilisateurs restreinte
+                        .requestMatchers("/api/sessions/**").hasAnyRole("ADMIN", "SUPERADMIN") // Seuls superadmin et admin peuvent gérer les sessions
+                        .requestMatchers("/api/modules/**").hasAnyRole("ADMIN", "SUPERADMIN", "TRAINER") // Les formateurs peuvent gérer leurs modules
+                        .requestMatchers("/api/notes/**").hasAnyRole("TRAINER", "STUDENT") // Formateurs et étudiants peuvent consulter les notes
+
                         .anyRequest().authenticated())// Toutes les autres requêtes nécessitent une authentification
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))// Utilise des sessions stateless pour JWT

@@ -67,7 +67,7 @@ public class JwtService {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    // Obtenir un objet Authentication à partir du UserDetails pour le contexte de sécurité
+    // Obtenir un objet Authentication à partir de UserDetails pour le contexte de sécurité
     public UsernamePasswordAuthenticationToken getAuthenticationToken(UserDetails userDetails, HttpServletRequest request) {
         return new UsernamePasswordAuthenticationToken(
                 userDetails, null, userDetails.getAuthorities());

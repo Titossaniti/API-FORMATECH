@@ -1,6 +1,7 @@
 package com.example.apiformatech.service;
 
 
+import com.example.apiformatech.exception.ResourceNotFoundException;
 import com.example.apiformatech.model.Module;
 import com.example.apiformatech.repository.ModuleRepository;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,9 @@ public class ModuleService {
 
     // Méthode pour sauvegarder un module
     public Module saveModule(Module module) {
+        if (moduleRepository.existsByName(module.getName())) {
+            throw new ResourceNotFoundException("Un module avec le même nom existe déjà.");
+        }
         return moduleRepository.save(module);
     }
 
@@ -34,7 +38,7 @@ public class ModuleService {
     }
     // Méthode pour mettre à jour un module
     public Module updateModule(Long id, Module updatedModule) {
-        Module existingModule = moduleRepository.findById(id).orElseThrow(() -> new RuntimeException("Module not found"));
+        Module existingModule = moduleRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Module not found"));
 
         // Met à jour les informations du module
         existingModule.setName(updatedModule.getName());
@@ -45,6 +49,9 @@ public class ModuleService {
 
     // Méthode pour supprimer un module par ID
     public void deleteModule(Long id) {
+        if(!moduleRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Module avec l'ID " + id + " n'existe pas");
+        }
         moduleRepository.deleteById(id);
     }
 
