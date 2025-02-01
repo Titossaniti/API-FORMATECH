@@ -15,6 +15,10 @@ import java.util.Date;
 
 @Component
 public class DataInitializer {
+
+    @Value("${superadmin.mail}")
+    private String superAdminEmail;
+
     @Value("${superadmin.password}")
     private String superAdminPassword;
 
@@ -48,11 +52,11 @@ public class DataInitializer {
             }
 
             // Création du superadmin
-            if (userRepository.findByEmail("superadmin@mail.com").isEmpty()) {
+            if (userRepository.findByEmail(superAdminEmail).isEmpty()) {
                 Role superadminRole = roleRepository.findByTitle("SUPERADMIN").get();
 
                 User superadmin = new User();
-                superadmin.setEmail("superadmin@mail.com");
+                superadmin.setEmail(superAdminEmail);
 
                 superadmin.setPassword(passwordEncoder.encode(superAdminPassword));
 

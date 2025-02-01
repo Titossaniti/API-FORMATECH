@@ -34,10 +34,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         .requestMatchers("/auth/**").permitAll() // Authentification accessible sans token
-                        .requestMatchers("/api/users/**").hasAnyRole("ADMIN", "SUPERADMIN") // Gestion des utilisateurs restreinte
-                        .requestMatchers("/api/sessions/**").hasAnyRole("ADMIN", "SUPERADMIN") // Seuls superadmin et admin peuvent gérer les sessions
-                        .requestMatchers("/api/modules/**").hasAnyRole("ADMIN", "SUPERADMIN", "TRAINER") // Les formateurs peuvent gérer leurs modules
-                        .requestMatchers("/api/notes/**").hasAnyRole("TRAINER", "STUDENT") // Formateurs et étudiants peuvent consulter les notes
+                        .requestMatchers("/api/users/**").hasAuthority("ADMIN") // Gestion des utilisateurs restreinte
+                        .requestMatchers("/api/sessions/**").hasAnyAuthority("ADMIN", "SUPERADMIN") // Seuls superadmin et admin peuvent gérer les sessions
+                        .requestMatchers("/api/modules/**").hasAnyAuthority("ADMIN", "SUPERADMIN", "TRAINER") // Les formateurs peuvent gérer leurs modules
+                        .requestMatchers("/api/notes/**").hasAnyAuthority("TRAINER", "STUDENT") // Formateurs et étudiants peuvent consulter les notes
 
                         .anyRequest().authenticated())// Toutes les autres requêtes nécessitent une authentification
                 .sessionManagement(session -> session

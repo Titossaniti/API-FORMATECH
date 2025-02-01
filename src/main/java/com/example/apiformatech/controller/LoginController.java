@@ -18,9 +18,9 @@ public class LoginController {
     // Endpoint pour se connecter et obtenir un token JWT
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
-        // Ici, vous utilisez les données encapsulées dans loginRequest
+        // Utilisation des données encapsulées dans loginRequest
         String token = loginService.login(loginRequest.getEmail(), loginRequest.getPassword());
-        return ResponseEntity.ok(token); // Renvoie le token JWT dans la réponse
+        return ResponseEntity.ok(token); // Renvoie le token JWT
     }
 
 }
