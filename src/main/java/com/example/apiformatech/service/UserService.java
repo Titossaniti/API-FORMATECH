@@ -92,6 +92,12 @@ public class UserService implements UserDetailsService {
         if (user.getRole().getTitle().equals("SUPERADMIN") && user.getEstablishment() != null) {
             throw new BadRequestException("Un superadmin ne peut pas être rattaché à un établissement.");
         }
+        // Vérifier si l'utilisateur est un ADMIN et limite la création aux élèves et formateurs
+        if (user.getRole().getTitle().equals("ADMIN")) {
+            if (!user.getRole().getTitle().equals("STUDENT") && !user.getRole().getTitle().equals("TRAINER")) {
+                throw new BadRequestException("Un admin ne peut créer que des élèves ou des formateurs.");
+            }
+        }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);

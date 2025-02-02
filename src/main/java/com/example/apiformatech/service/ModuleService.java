@@ -15,20 +15,14 @@ import java.util.Optional;
 public class ModuleService {
 
     private final ModuleRepository moduleRepository;
-    private final SessionRepository sessionRepository;
 
     // Injection des dépendances via le constructeur
-    public ModuleService(ModuleRepository moduleRepository, SessionRepository sessionRepository) {
+    public ModuleService(ModuleRepository moduleRepository) {
         this.moduleRepository = moduleRepository;
-        this.sessionRepository = sessionRepository;
     }
 
     // Méthode pour sauvegarder un module
-    public Module saveModule(Module module, Long sessionId) {
-        Session session = sessionRepository.findById(sessionId)
-                .orElseThrow(() -> new ResourceNotFoundException("Session introuvable avec l'ID " + sessionId));
-
-        module.getSessions().add(session);
+    public Module saveModule(Module module) {
         return moduleRepository.save(module);
     }
 

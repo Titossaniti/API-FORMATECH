@@ -34,7 +34,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
     }
 
-    @PostMapping("/create-admin")
+    @PostMapping("/admin")
     public ResponseEntity<?> createAdmin(@RequestBody User user,
                                          @RequestParam Long establishmentId,
                                          @AuthenticationPrincipal UserDetails userDetails) {
