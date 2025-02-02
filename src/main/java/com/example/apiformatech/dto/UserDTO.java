@@ -22,4 +22,3 @@ public class UserDTO {
     public String getRole() { return role; }
     public EstablishmentDTO getEstablishment() { return establishment; }
 }
-

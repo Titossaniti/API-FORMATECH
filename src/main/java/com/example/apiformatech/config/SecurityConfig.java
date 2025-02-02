@@ -35,6 +35,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         .requestMatchers("/auth/**").permitAll() // Authentification accessible sans token
+                        .requestMatchers(HttpMethod.PUT, "/api/users/{id}").authenticated() // Modifier son profil si on est connecté
                         .requestMatchers("/api/users/**").hasAnyAuthority("ADMIN", "SUPERADMIN") // Gestion des utilisateurs restreinte
                         .requestMatchers("/api/sessions/**").hasAnyAuthority("ADMIN", "SUPERADMIN") // Seuls superadmin et admin peuvent gérer les sessions
                         .requestMatchers("/api/modules/**").hasAnyAuthority("ADMIN", "SUPERADMIN") // Seuls superadmin et admin peuvent gérer leurs modules

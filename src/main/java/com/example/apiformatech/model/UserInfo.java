@@ -1,5 +1,6 @@
 package com.example.apiformatech.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
@@ -15,6 +16,7 @@ public class UserInfo {
 
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private User user;
 
     @NotNull(message = "Le prénom est obligatoire")

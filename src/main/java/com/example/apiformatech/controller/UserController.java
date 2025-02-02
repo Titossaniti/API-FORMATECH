@@ -1,6 +1,8 @@
 package com.example.apiformatech.controller;
 
+import com.example.apiformatech.dto.UpdateUserDTO;
 import com.example.apiformatech.dto.UserDTO;
+import com.example.apiformatech.exception.BadRequestException;
 import com.example.apiformatech.exception.ResourceNotFoundException;
 import com.example.apiformatech.model.Session;
 import com.example.apiformatech.model.User;
@@ -38,6 +40,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
     }
 
+    // Créer un admin pour un établissement
     @PostMapping("/admin")
     public ResponseEntity<?> createAdmin(@RequestBody User user,
                                          @RequestParam Long establishmentId,
@@ -49,6 +52,21 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+
+    // Créer des élèves pour une session
+    @PostMapping("/students/{sessionId}")
+    public ResponseEntity<?> createStudent(
+            @RequestBody List<User> students, // Accepte une liste d'étudiants
+            @PathVariable Long sessionId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            List<User> createdStudents = userService.createStudents(students, sessionId, userDetails);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdStudents);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
 
     // Récupérer un utilisateur par ID
     @GetMapping("/{id}")
@@ -109,13 +127,20 @@ public class UserController {
     @PutMapping("/{id}")
     public ResponseEntity<User> updateUserAndInfo(
             @PathVariable Long id,
-            @RequestBody User updatedUser,
-            @RequestBody UserInfo updatedInfo) {
+            @RequestBody UpdateUserDTO updateUserDTO,
+            @AuthenticationPrincipal UserDetails userDetails) {
 
         try {
-            User user = userService.updateUserAndInfo(id, updatedUser, updatedInfo);
-            return ResponseEntity.ok(user);
-        } catch (RuntimeException e) {
+            User updated = userService.updateUserAndInfo(
+                    id,
+                    updateUserDTO.getUser(),
+                    updateUserDTO.getUserInfo(),
+                    userDetails
+            );
+            return ResponseEntity.ok(updated);
+        } catch (BadRequestException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        } catch (ResourceNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
