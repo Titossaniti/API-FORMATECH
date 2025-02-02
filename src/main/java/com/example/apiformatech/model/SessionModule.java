@@ -1,7 +1,11 @@
 package com.example.apiformatech.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
+
+import java.util.Date;
 
 
 @Entity
@@ -26,6 +30,13 @@ public class SessionModule {
     @ManyToOne
     @JoinColumn(name = "trainer_id", nullable = false)
     private User trainer;
+
+    @NotNull(message = "La date de début est obligatoire")
+    @FutureOrPresent(message = "La date de début doit être dans le futur ou le présent")
+    private Date startDate;
+
+    @Future(message = "La date de fin doit être dans le futur")
+    private Date endDate;
 
 
     public Long getId() {
@@ -58,6 +69,22 @@ public class SessionModule {
 
     public void setTrainer(User trainer) {
         this.trainer = trainer;
+    }
+
+    public Date getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
+    }
+
+    public Date getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(Date endDate) {
+        this.endDate = endDate;
     }
 }
 

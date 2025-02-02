@@ -21,12 +21,19 @@ public class SessionModuleController {
     // Assigner un module à une session avec un formateur
     @PostMapping("/{sessionId}/modules/{moduleId}/trainers/{trainerId}")
     public ResponseEntity<SessionModule> assignModuleToSession(
-            @PathVariable Long sessionId, @PathVariable Long moduleId, @PathVariable Long trainerId) {
+            @PathVariable Long sessionId,
+            @PathVariable Long moduleId,
+            @PathVariable Long trainerId,
+            @RequestBody SessionModule sessionModule) {
         try {
-            SessionModule sessionModule = sessionModuleService.assignModuleToSession(sessionId, moduleId, trainerId);
-            return ResponseEntity.status(HttpStatus.CREATED).body(sessionModule);
+            SessionModule createdSessionModule = sessionModuleService.assignModuleToSession(
+                    sessionId, moduleId, trainerId,
+                    sessionModule.getStartDate(),
+                    sessionModule.getEndDate()
+            );
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdSessionModule);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
 

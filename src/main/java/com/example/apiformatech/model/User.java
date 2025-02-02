@@ -68,7 +68,7 @@ public class User {
     }
 
     @ManyToOne
-    @JoinColumn(name = "establishment_id", nullable = true) // Nullable car que pour les admins
+    @JoinColumn(name = "establishmen_id", nullable = true) // Nullable car que pour les admins
     private Establishment establishment;
 
     public Establishment getEstablishment() {

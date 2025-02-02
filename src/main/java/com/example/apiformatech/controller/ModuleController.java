@@ -18,19 +18,16 @@ public class ModuleController {
         this.moduleService = moduleService;
     }
 
-    // Créer ou mettre à jour un module
+    // Créer un module et l'associer à une session
     @PostMapping
-    public ResponseEntity<Module> createModule(@RequestBody Module module) {
-        Module savedModule = moduleService.saveModule(module);
-        if (module.getId() == null) {
-            // Si l'ID est null, c'est une création
+    public ResponseEntity<?> createModule(@RequestBody Module module, @RequestParam Long sessionId) {
+        try {
+            Module savedModule = moduleService.saveModule(module, sessionId);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedModule);
-        } else {
-            // Sinon, c'est une mise à jour
-            return ResponseEntity.ok(savedModule);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
-
 
     // Récupérer tous les modules
     @GetMapping
@@ -42,7 +39,6 @@ public class ModuleController {
         return ResponseEntity.ok(modules);
     }
 
-
     // Récupérer un module par ID
     @GetMapping("/{id}")
     public ResponseEntity<Module> getModuleById(@PathVariable Long id) {
@@ -50,7 +46,6 @@ public class ModuleController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
-
 
     // Mettre à jour un module
     @PutMapping("/{id}")
@@ -63,7 +58,6 @@ public class ModuleController {
         }
     }
 
-
     // Supprimer un module
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteModule(@PathVariable Long id) {
@@ -74,7 +68,4 @@ public class ModuleController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
-
 }
-
-

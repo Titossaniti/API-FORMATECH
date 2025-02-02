@@ -12,6 +12,7 @@ import com.example.apiformatech.repository.SessionRepository;
 import com.example.apiformatech.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -31,10 +32,15 @@ public class SessionModuleService {
     }
 
     // Méthode pour associer un module et un formateur à une session
-    public SessionModule assignModuleToSession(Long sessionId, Long moduleId, Long trainerId) {
+    public SessionModule assignModuleToSession(Long sessionId, Long moduleId, Long trainerId, Date startDate, Date endDate) {
         Session session = sessionRepository.findById(sessionId).orElseThrow(() -> new ResourceNotFoundException("La session avec l'ID " + sessionId + "n'existe pas."));
         Module module = moduleRepository.findById(moduleId).orElseThrow(() -> new ResourceNotFoundException("Le module avec l'ID " + moduleId + "n'existe pas."));
         User trainer = userRepository.findById(trainerId).orElseThrow(() -> new ResourceNotFoundException("L'enseignant avec l'ID " + trainerId + "n'existe pas."));
+
+        // Vérifier s'il s'agit bien d'un formateur
+        if (!trainer.getRole().getTitle().equals("TRAINER")) {
+            throw new BadRequestException("L'utilisateur spécifié n'est pas un formateur.");
+        }
 
         // Vérifier si ce formateur est déjà assigné à ce module sur cette session
         if (sessionModuleRepository.existsBySessionAndModuleAndTrainer(session, module, trainer)) {
@@ -45,6 +51,8 @@ public class SessionModuleService {
         sessionModule.setSession(session);
         sessionModule.setModule(module);
         sessionModule.setTrainer(trainer);
+        sessionModule.setStartDate(startDate);
+        sessionModule.setEndDate(endDate);
 
         return sessionModuleRepository.save(sessionModule);
     }

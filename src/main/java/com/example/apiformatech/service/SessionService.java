@@ -58,6 +58,7 @@ public class SessionService {
             throw new RuntimeException("Vous ne pouvez modifier que les sessions de votre établissement.");
         }
 
+
         existingSession.setName(updatedSession.getName());
         existingSession.setDescription(updatedSession.getDescription());
         existingSession.setStartDate(updatedSession.getStartDate());

@@ -3,6 +3,10 @@ package com.example.apiformatech.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
+import java.util.HashSet;
+import java.util.Set;
+
+
 @Entity
 @Table(name = "modules")
 public class Module {
@@ -17,6 +21,15 @@ public class Module {
 
     @Size(max = 255, message = "La description ne peut pas dépasser 255 caractères")
     private String description;
+
+    @ManyToMany
+    @JoinTable(
+        name = "session_modules",
+        joinColumns = @JoinColumn(name = "module_id"),
+        inverseJoinColumns = @JoinColumn(name = "session_id")
+    )
+
+    private Set<Session> sessions = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -41,6 +54,10 @@ public class Module {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    public Set<Session> getSessions() { return sessions; }
+
+    public void setSessions(Set<Session> sessions) { this.sessions = sessions; }
 
 }
 

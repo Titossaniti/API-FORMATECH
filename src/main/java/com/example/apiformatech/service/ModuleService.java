@@ -3,7 +3,9 @@ package com.example.apiformatech.service;
 
 import com.example.apiformatech.exception.ResourceNotFoundException;
 import com.example.apiformatech.model.Module;
+import com.example.apiformatech.model.Session;
 import com.example.apiformatech.repository.ModuleRepository;
+import com.example.apiformatech.repository.SessionRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,17 +15,20 @@ import java.util.Optional;
 public class ModuleService {
 
     private final ModuleRepository moduleRepository;
+    private final SessionRepository sessionRepository;
 
     // Injection des dépendances via le constructeur
-    public ModuleService(ModuleRepository moduleRepository) {
+    public ModuleService(ModuleRepository moduleRepository, SessionRepository sessionRepository) {
         this.moduleRepository = moduleRepository;
+        this.sessionRepository = sessionRepository;
     }
 
     // Méthode pour sauvegarder un module
-    public Module saveModule(Module module) {
-        if (moduleRepository.existsByName(module.getName())) {
-            throw new ResourceNotFoundException("Un module avec le même nom existe déjà.");
-        }
+    public Module saveModule(Module module, Long sessionId) {
+        Session session = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Session introuvable avec l'ID " + sessionId));
+
+        module.getSessions().add(session);
         return moduleRepository.save(module);
     }
 
@@ -36,6 +41,7 @@ public class ModuleService {
     public Optional<Module> getModuleById(Long id) {
         return moduleRepository.findById(id);
     }
+
     // Méthode pour mettre à jour un module
     public Module updateModule(Long id, Module updatedModule) {
         Module existingModule = moduleRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Module not found"));
