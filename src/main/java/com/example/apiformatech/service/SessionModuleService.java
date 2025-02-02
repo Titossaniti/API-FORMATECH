@@ -68,10 +68,29 @@ public class SessionModuleService {
         return sessionModuleRepository.save(sessionModule);
     }
 
-    // Méthode pour récupérer tous les session-modules
+    // Récupérer toutes les sessions/modules
     public List<SessionModule> getAllSessionModules() {
         return sessionModuleRepository.findAll();
     }
+
+    // Récupérer tous les modules d'un formateur
+    public List<Module> getModulesByTrainer(Long trainerId) {
+        User trainer = userRepository.findById(trainerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Formateur non trouvé"));
+
+        List<SessionModule> sessionModules = sessionModuleRepository.findByTrainer(trainer);
+
+        if (sessionModules.isEmpty()) {
+            throw new ResourceNotFoundException("Aucun module trouvé pour ce formateur.");
+        }
+
+        return sessionModuleRepository.findByTrainer(trainer)
+                .stream()
+                .map(SessionModule::getModule)
+                .distinct() // Pour éviter les doublons
+                .toList();
+    }
+
 
     // Méthode pour supprimer une relation session-module
     public void deleteSessionModule(Long id) {
@@ -80,5 +99,17 @@ public class SessionModuleService {
         }
         sessionModuleRepository.deleteById(id);
     }
+
+    public List<Session> getSessionsByTrainer(Long trainerId) {
+        User trainer = userRepository.findById(trainerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Formateur non trouvé"));
+
+        return sessionModuleRepository.findByTrainer(trainer)
+                .stream()
+                .map(SessionModule::getSession)
+                .distinct()
+                .toList();
+    }
+
 }
 

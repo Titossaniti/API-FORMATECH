@@ -17,4 +17,7 @@ public interface SessionModuleRepository extends JpaRepository<SessionModule, Lo
 
     // Récupérer tous les modules d'un étudiant en passant par ses sessions
     List<SessionModule> findBySessionIn(List<Session> sessions);
+
+    List<SessionModule> findByTrainer(User trainer);
+
 }

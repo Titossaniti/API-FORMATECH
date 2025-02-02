@@ -2,6 +2,7 @@ package com.example.apiformatech.controller;
 
 import com.example.apiformatech.model.SessionModule;
 import com.example.apiformatech.service.SessionModuleService;
+import com.example.apiformatech.model.Module;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -52,6 +53,13 @@ public class SessionModuleController {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
         return ResponseEntity.ok(sessionModules);
+    }
+
+    // Récupérer les modules d'un formateur
+    @GetMapping("/trainer/{trainerId}/modules")
+    public ResponseEntity<List<Module>> getTrainerModules(@PathVariable Long trainerId) {
+        List<Module> modules = sessionModuleService.getModulesByTrainer(trainerId);
+        return ResponseEntity.ok(modules);
     }
 
     // Supprimer une relation session-module

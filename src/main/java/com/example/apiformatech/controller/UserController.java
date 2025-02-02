@@ -2,8 +2,10 @@ package com.example.apiformatech.controller;
 
 import com.example.apiformatech.dto.UserDTO;
 import com.example.apiformatech.exception.ResourceNotFoundException;
+import com.example.apiformatech.model.Session;
 import com.example.apiformatech.model.User;
 import com.example.apiformatech.model.UserInfo;
+import com.example.apiformatech.service.SessionModuleService;
 import com.example.apiformatech.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +20,11 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final SessionModuleService sessionModuleService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, SessionModuleService sessionModuleService) {
         this.userService = userService;
+        this.sessionModuleService = sessionModuleService;
     }
 
     // Créer un utilisateur
@@ -73,6 +77,17 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
+    // Récupérer les sessions d'un formateur
+    @GetMapping("/{trainerId}/sessions")
+    public ResponseEntity<List<Session>> getTrainerSessions(@PathVariable Long trainerId) {
+        List<Session> sessions = sessionModuleService.getSessionsByTrainer(trainerId);
+
+        if (sessions.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        return ResponseEntity.ok(sessions);
+    }
 
     // Assigner un rôle à un utilisateur
     @PutMapping("/{email}/role/{role}")
