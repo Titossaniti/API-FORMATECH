@@ -1,5 +1,6 @@
 package com.example.apiformatech.service;
 
+import com.example.apiformatech.exception.BadRequestException;
 import com.example.apiformatech.exception.ResourceNotFoundException;
 import com.example.apiformatech.model.Establishment;
 import com.example.apiformatech.model.Session;
@@ -27,10 +28,10 @@ public class SessionService {
         Establishment establishment = establishmentRepository.findById(establishmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Établissement non trouvé"));
 
-        // Vérifier que l'utilisateur est autorisé à créer une session pour cet établissement
+        // Vérifie si l'admin est bien rattaché à cet établissement
         if (!user.getRole().getTitle().equals("SUPERADMIN") &&
-                (user.getEstablishment() == null || !user.getEstablishment().getId().equals(establishmentId))) {
-            throw new RuntimeException("Vous ne pouvez créer une session que pour votre établissement.");
+                !user.getEstablishment().getId().equals(establishmentId)) {
+            throw new BadRequestException("Vous n'avez pas les droits pour créer une session dans cet établissement.");
         }
 
         session.setEstablishment(establishment);

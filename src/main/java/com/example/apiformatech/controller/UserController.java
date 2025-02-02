@@ -55,7 +55,6 @@ public class UserController {
     }
 
 
-
     // Récupérer un utilisateur par email
     @GetMapping("/email/{email}")
     public ResponseEntity<User> getUserByEmail(@PathVariable String email) {

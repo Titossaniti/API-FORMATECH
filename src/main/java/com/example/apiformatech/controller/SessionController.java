@@ -7,6 +7,7 @@ import com.example.apiformatech.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,17 +25,23 @@ public class SessionController {
     }
 
     // Créer une session en la liant directement à un établissement
-    @PostMapping
-    public ResponseEntity<?> createSession(@RequestBody Session session,
-                                           @RequestParam Long establishmentId,
-                                           @AuthenticationPrincipal User user) {
+    @PostMapping("/establishment/{establishmentId}")
+    public ResponseEntity<?> createSession(@PathVariable Long establishmentId,
+                                           @RequestBody Session session,
+                                           @AuthenticationPrincipal UserDetails userDetails) {
         try {
+            // Récupération de l'utilisateur à partir de son email
+            User user = userService.getUserByEmail(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+
+            // Créer la session
             Session createdSession = sessionService.createSession(session, establishmentId, user);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdSession);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+
 
     // Récupérer toutes les sessions
     @GetMapping
