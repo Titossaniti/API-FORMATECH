@@ -4,9 +4,13 @@ import com.example.apiformatech.model.SessionModule;
 import com.example.apiformatech.service.SessionModuleService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/session-with-modules")
@@ -24,19 +28,21 @@ public class SessionModuleController {
             @PathVariable Long sessionId,
             @PathVariable Long moduleId,
             @PathVariable Long trainerId,
-            @RequestBody SessionModule sessionModule) {
+            @RequestBody Map<String, String> requestBody,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
         try {
+            Date startDate = java.sql.Date.valueOf(requestBody.get("startDate"));
+            Date endDate = java.sql.Date.valueOf(requestBody.get("endDate"));
+
             SessionModule createdSessionModule = sessionModuleService.assignModuleToSession(
-                    sessionId, moduleId, trainerId,
-                    sessionModule.getStartDate(),
-                    sessionModule.getEndDate()
-            );
+                    sessionId, moduleId, trainerId, startDate, endDate, userDetails);
+
             return ResponseEntity.status(HttpStatus.CREATED).body(createdSessionModule);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
-
 
     // Récupérer toutes les relations session-module
     @GetMapping
@@ -48,7 +54,6 @@ public class SessionModuleController {
         return ResponseEntity.ok(sessionModules);
     }
 
-
     // Supprimer une relation session-module
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSessionModule(@PathVariable Long id) {
@@ -59,5 +64,4 @@ public class SessionModuleController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
-
 }

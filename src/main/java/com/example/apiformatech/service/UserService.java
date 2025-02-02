@@ -99,8 +99,9 @@ public class UserService implements UserDetailsService {
 
     // Méthode pour récupérer un utilisateur par email
     public Optional<User> getUserByEmail(String email) {
-        return userRepository.findByEmail(email);
+        return userRepository.findByEmailWithEstablishment(email);
     }
+
     // Méthode pour lister l'ensemble des users
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -161,21 +162,22 @@ public class UserService implements UserDetailsService {
         userRepository.deleteById(id);
     }
 
+    // Create Admin car il doit avoir un establishment lié obligatoirement
     public User createAdmin(User admin, Long establishmentId, UserDetails userDetails) {
-        // ✅ Récupérer l'utilisateur connecté
+        // Récupérer l'utilisateur connecté
         User currentUser = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
 
         Establishment establishment = establishmentRepository.findById(establishmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Établissement non trouvé"));
 
-        // ✅ Vérification des permissions
+        // Vérification des permissions
         if (!currentUser.getRole().getTitle().equals("SUPERADMIN") &&
                 (currentUser.getEstablishment() == null || !currentUser.getEstablishment().getId().equals(establishmentId))) {
             throw new RuntimeException("Vous ne pouvez créer un admin que pour votre propre établissement.");
         }
 
-        // ✅ Création de l'Admin
+        // Création de l'Admin
         admin.setRole(roleRepository.findByTitle("ADMIN")
                 .orElseThrow(() -> new ResourceNotFoundException("Rôle ADMIN introuvable")));
         admin.setEstablishment(establishment);

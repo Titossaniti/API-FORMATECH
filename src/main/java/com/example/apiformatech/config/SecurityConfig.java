@@ -6,6 +6,7 @@ import com.example.apiformatech.service.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -38,6 +39,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/sessions/**").hasAnyAuthority("ADMIN", "SUPERADMIN") // Seuls superadmin et admin peuvent gérer les sessions
                         .requestMatchers("/api/modules/**").hasAnyAuthority("ADMIN", "SUPERADMIN", "TRAINER") // Les formateurs peuvent gérer leurs modules
                         .requestMatchers("/api/notes/**").hasAnyAuthority("TRAINER", "STUDENT") // Formateurs et étudiants peuvent consulter les notes
+                        .requestMatchers(HttpMethod.POST, "/api/sessions/{sessionId}/modules/{moduleId}/trainers/{trainerId}").hasAnyAuthority("SUPERADMIN", "ADMIN") // SAdmin et admin peuvent associer session/module/formateur
 
                         .anyRequest().authenticated())// Toutes les autres requêtes nécessitent une authentification
                 .sessionManagement(session -> session

@@ -10,6 +10,7 @@ import com.example.apiformatech.repository.ModuleRepository;
 import com.example.apiformatech.repository.SessionModuleRepository;
 import com.example.apiformatech.repository.SessionRepository;
 import com.example.apiformatech.repository.UserRepository;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -32,11 +33,16 @@ public class SessionModuleService {
     }
 
     // Méthode pour associer un module et un formateur à une session
-    public SessionModule assignModuleToSession(Long sessionId, Long moduleId, Long trainerId, Date startDate, Date endDate) {
+    public SessionModule assignModuleToSession(Long sessionId, Long moduleId, Long trainerId, Date startDate, Date endDate, UserDetails userDetails) {
         Session session = sessionRepository.findById(sessionId).orElseThrow(() -> new ResourceNotFoundException("La session avec l'ID " + sessionId + "n'existe pas."));
         Module module = moduleRepository.findById(moduleId).orElseThrow(() -> new ResourceNotFoundException("Le module avec l'ID " + moduleId + "n'existe pas."));
         User trainer = userRepository.findById(trainerId).orElseThrow(() -> new ResourceNotFoundException("L'enseignant avec l'ID " + trainerId + "n'existe pas."));
+        User currentUser = userRepository.findByEmail(userDetails.getUsername()).orElseThrow(() -> new BadRequestException("Utilisateur non trouvé"));
 
+        // Vérifier que l’admin n’essaie pas de gérer une session hors de son établissement
+        if (currentUser.getRole().getTitle().equals("ADMIN") && !currentUser.getEstablishment().equals(session.getEstablishment())) {
+            throw new BadRequestException("Vous ne pouvez gérer que les sessions de votre établissement");
+        }
         // Vérifier s'il s'agit bien d'un formateur
         if (!trainer.getRole().getTitle().equals("TRAINER")) {
             throw new BadRequestException("L'utilisateur spécifié n'est pas un formateur.");
@@ -45,6 +51,11 @@ public class SessionModuleService {
         // Vérifier si ce formateur est déjà assigné à ce module sur cette session
         if (sessionModuleRepository.existsBySessionAndModuleAndTrainer(session, module, trainer)) {
             throw new BadRequestException("Ce formateur est déjà assigné à ce module pour cette session.");
+        }
+
+        // Vérifier que startDate < endDate
+        if (startDate.after(endDate)) {
+            throw new BadRequestException("La date de début doit être avant la date de fin.");
         }
 
         SessionModule sessionModule = new SessionModule();
