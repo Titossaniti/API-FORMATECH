@@ -1,9 +1,12 @@
 package com.example.apiformatech.controller;
 
 import com.example.apiformatech.model.Session;
+import com.example.apiformatech.model.User;
 import com.example.apiformatech.service.SessionService;
+import com.example.apiformatech.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,24 +16,25 @@ import java.util.List;
 public class SessionController {
 
     private final SessionService sessionService;
+    private final UserService userService;
 
-    public SessionController(SessionService sessionService) {
+    public SessionController(SessionService sessionService, UserService userService) {
         this.sessionService = sessionService;
+        this.userService = userService;
     }
 
-    // Créer ou mettre à jour une session
+    // Créer une session en la liant directement à un établissement
     @PostMapping
-    public ResponseEntity<Session> createSession(@RequestBody Session session) {
-        Session savedSession = sessionService.saveSession(session);
-        if (session.getId() == null) {
-            // Création d'une nouvelle session
-            return ResponseEntity.status(HttpStatus.CREATED).body(savedSession);
-        } else {
-            // Mise à jour d'une session existante
-            return ResponseEntity.ok(savedSession);
+    public ResponseEntity<?> createSession(@RequestBody Session session,
+                                           @RequestParam Long establishmentId,
+                                           @AuthenticationPrincipal User user) {
+        try {
+            Session createdSession = sessionService.createSession(session, establishmentId, user);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdSession);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
-
 
     // Récupérer toutes les sessions
     @GetMapping
@@ -42,7 +46,6 @@ public class SessionController {
         return ResponseEntity.ok(sessions);
     }
 
-
     // Récupérer une session par ID
     @GetMapping("/{id}")
     public ResponseEntity<Session> getSessionById(@PathVariable Long id) {
@@ -51,40 +54,27 @@ public class SessionController {
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
-
-    // Assigner une session à un établissement
-    @PutMapping("/{sessionId}/establishment/{establishmentId}")
-    public ResponseEntity<Session> assignSessionToEstablishment(@PathVariable Long sessionId, @PathVariable Long establishmentId) {
-        try {
-            Session updatedSession = sessionService.assignSessionToEstablishment(sessionId, establishmentId);
-            return ResponseEntity.ok(updatedSession);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
-    }
-
-
-    // Mettre à jour une session
+    // Mettre à jour une session (Admin peut modifier uniquement celles de son établissement)
     @PutMapping("/{id}")
-    public ResponseEntity<Session> updateSession(@PathVariable Long id, @RequestBody Session session) {
+    public ResponseEntity<?> updateSession(@PathVariable Long id,
+                                           @RequestBody Session session,
+                                           @AuthenticationPrincipal User user) {
         try {
-            Session updatedSession = sessionService.updateSession(id, session);
+            Session updatedSession = sessionService.updateSession(id, session, user);
             return ResponseEntity.ok(updatedSession);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
-
-    // Supprimer une session
+    // Supprimer une session (Admin uniquement dans son établissement)
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSession(@PathVariable Long id) {
+    public ResponseEntity<?> deleteSession(@PathVariable Long id, @AuthenticationPrincipal User user) {
         try {
-            sessionService.deleteSession(id);
+            sessionService.deleteSession(id, user);
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
-
 }

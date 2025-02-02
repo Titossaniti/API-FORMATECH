@@ -1,7 +1,11 @@
 package com.example.apiformatech.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+
+import java.util.Set;
+
 
 @Entity
 @Table(name = "establishments")
@@ -89,6 +93,21 @@ public class Establishment {
     public void setEmail(String email) {
         this.email = email;
     }
+
+    // Relation avec les admins
+    @OneToMany(mappedBy = "establishment")
+    @JsonIgnore
+    private Set<User> admins;
+
+    public Set<User> getAdmins() {
+        return admins;
+    }
+
+    public void setAdmins(Set<User> admins) {
+        this.admins = admins;
+    }
+
+
 
 }
 

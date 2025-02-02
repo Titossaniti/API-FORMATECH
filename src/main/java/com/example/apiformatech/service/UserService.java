@@ -2,9 +2,11 @@ package com.example.apiformatech.service;
 
 import com.example.apiformatech.exception.BadRequestException;
 import com.example.apiformatech.exception.ResourceNotFoundException;
+import com.example.apiformatech.model.Establishment;
 import com.example.apiformatech.model.Role;
 import com.example.apiformatech.model.User;
 import com.example.apiformatech.model.UserInfo;
+import com.example.apiformatech.repository.EstablishmentRepository;
 import com.example.apiformatech.repository.RoleRepository;
 import com.example.apiformatech.repository.UserInfoRepository;
 import com.example.apiformatech.repository.UserRepository;
@@ -16,20 +18,51 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import com.example.apiformatech.dto.UserDTO;
+import com.example.apiformatech.dto.EstablishmentDTO;
 
 @Service
 public class UserService implements UserDetailsService {
 
+    public UserDTO mapToUserDTO(User user) {
+        EstablishmentDTO establishmentDTO = null;
+
+        if (user.getEstablishment() != null) {
+            List<UserDTO> adminDTOs = user.getEstablishment().getAdmins().stream()
+                    .map(admin -> new UserDTO(admin.getId(), admin.getEmail(), admin.getRole().getTitle(), null))
+                    .collect(Collectors.toList());
+
+            establishmentDTO = new EstablishmentDTO(
+                    user.getEstablishment().getId(),
+                    user.getEstablishment().getName(),
+                    user.getEstablishment().getCity(),
+                    adminDTOs
+            );
+        }
+
+        return new UserDTO(
+                user.getId(),
+                user.getEmail(),
+                user.getRole().getTitle(),
+                establishmentDTO
+        );
+    }
+
+
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserInfoRepository userInfoRepository;
+    private final EstablishmentRepository establishmentRepository;
     private PasswordEncoder passwordEncoder;
 
-    public UserService(PasswordEncoder passwordEncoder, UserRepository userRepository, RoleRepository roleRepository, UserInfoRepository userInfoRepository) {
+    public UserService(PasswordEncoder passwordEncoder, UserRepository userRepository, RoleRepository roleRepository, UserInfoRepository userInfoRepository, EstablishmentRepository establishmentRepository) {
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.userInfoRepository = userInfoRepository;
+        this.establishmentRepository = establishmentRepository;
     }
 
     // Implémentation de la méthode de UserDetailsService
@@ -55,6 +88,11 @@ public class UserService implements UserDetailsService {
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new BadRequestException("Cet email est déjà utilisé.");
         }
+
+        if (user.getRole().getTitle().equals("SUPERADMIN") && user.getEstablishment() != null) {
+            throw new BadRequestException("Un superadmin ne peut pas être rattaché à un établissement.");
+        }
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
@@ -121,6 +159,29 @@ public class UserService implements UserDetailsService {
             throw new ResourceNotFoundException("Utilisateur avec l'ID " + id + " n'existe pas");
         }
         userRepository.deleteById(id);
+    }
+
+    public User createAdmin(User admin, Long establishmentId, UserDetails userDetails) {
+        // ✅ Récupérer l'utilisateur connecté
+        User currentUser = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
+
+        Establishment establishment = establishmentRepository.findById(establishmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Établissement non trouvé"));
+
+        // ✅ Vérification des permissions
+        if (!currentUser.getRole().getTitle().equals("SUPERADMIN") &&
+                (currentUser.getEstablishment() == null || !currentUser.getEstablishment().getId().equals(establishmentId))) {
+            throw new RuntimeException("Vous ne pouvez créer un admin que pour votre propre établissement.");
+        }
+
+        // ✅ Création de l'Admin
+        admin.setRole(roleRepository.findByTitle("ADMIN")
+                .orElseThrow(() -> new ResourceNotFoundException("Rôle ADMIN introuvable")));
+        admin.setEstablishment(establishment);
+        admin.setPassword(passwordEncoder.encode(admin.getPassword())); // Hash du mot de passe
+
+        return userRepository.save(admin);
     }
 
 }

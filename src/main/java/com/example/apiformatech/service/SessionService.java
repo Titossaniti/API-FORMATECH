@@ -1,8 +1,9 @@
 package com.example.apiformatech.service;
 
+import com.example.apiformatech.exception.ResourceNotFoundException;
 import com.example.apiformatech.model.Establishment;
 import com.example.apiformatech.model.Session;
-import com.example.apiformatech.exception.ResourceNotFoundException;
+import com.example.apiformatech.model.User;
 import com.example.apiformatech.repository.EstablishmentRepository;
 import com.example.apiformatech.repository.SessionRepository;
 import org.springframework.stereotype.Service;
@@ -16,59 +17,64 @@ public class SessionService {
     private final SessionRepository sessionRepository;
     private final EstablishmentRepository establishmentRepository;
 
-    // Injection des dépendances via le constructeur
     public SessionService(SessionRepository sessionRepository, EstablishmentRepository establishmentRepository) {
         this.sessionRepository = sessionRepository;
         this.establishmentRepository = establishmentRepository;
     }
 
-    // Méthode pour sauvegarder une session
-    public Session saveSession(Session session) {
-        if (sessionRepository.existsByName(session.getName())) {
-            throw new ResourceNotFoundException("Une session avec le même nom existe déjà.");
+    // Créer une session en la liant à un établissement
+    public Session createSession(Session session, Long establishmentId, User user) {
+        Establishment establishment = establishmentRepository.findById(establishmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Établissement non trouvé"));
+
+        // Vérifier que l'utilisateur est autorisé à créer une session pour cet établissement
+        if (!user.getRole().getTitle().equals("SUPERADMIN") &&
+                (user.getEstablishment() == null || !user.getEstablishment().getId().equals(establishmentId))) {
+            throw new RuntimeException("Vous ne pouvez créer une session que pour votre établissement.");
         }
+
+        session.setEstablishment(establishment);
         return sessionRepository.save(session);
     }
 
-    // Méthode pour récupérer toutes les sessions
+    // Récupérer toutes les sessions
     public List<Session> getAllSessions() {
         return sessionRepository.findAll();
     }
 
-    // Méthode pour récupérer une session par ID
+    // Récupérer une session par ID
     public Optional<Session> getSessionById(Long id) {
         return sessionRepository.findById(id);
     }
 
-    // Méthode pour associer une session à un établissement
-    public Session assignSessionToEstablishment(Long sessionId, Long establishmentId) {
-        Session session = sessionRepository.findById(sessionId).orElseThrow(() -> new ResourceNotFoundException("Session not found"));
-        Establishment establishment = establishmentRepository.findById(establishmentId).orElseThrow(() -> new ResourceNotFoundException("Establishment not found"));
-        session.setEstablishment(establishment);
-        return sessionRepository.save(session);
-    }
-    // Méthode pour mettre à jour une session de formation
-    public Session updateSession(Long id, Session updatedSession) {
+    // Mettre à jour une session (Admin = uniquement ses sessions)
+    public Session updateSession(Long id, Session updatedSession, User user) {
         Session existingSession = sessionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Session not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Session non trouvée"));
 
-        // Met à jour les informations de la session
-        existingSession.setType(updatedSession.getType());
+        if (!user.getRole().getTitle().equals("SUPERADMIN") &&
+                (user.getEstablishment() == null || !user.getEstablishment().equals(existingSession.getEstablishment()))) {
+            throw new RuntimeException("Vous ne pouvez modifier que les sessions de votre établissement.");
+        }
+
+        existingSession.setName(updatedSession.getName());
         existingSession.setDescription(updatedSession.getDescription());
         existingSession.setStartDate(updatedSession.getStartDate());
         existingSession.setEndDate(updatedSession.getEndDate());
-        existingSession.setEstablishment(updatedSession.getEstablishment());
 
         return sessionRepository.save(existingSession);
     }
 
-    // Méthode pour supprimer une session
-    public void deleteSession(Long id) {
-        if (!sessionRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Session avec l'ID" + id + " n'existe pas");
+    // Supprimer une session (Admin = uniquement ses sessions)
+    public void deleteSession(Long id, User user) {
+        Session session = sessionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Session non trouvée"));
+
+        if (!user.getRole().getTitle().equals("SUPERADMIN") &&
+                (user.getEstablishment() == null || !user.getEstablishment().equals(session.getEstablishment()))) {
+            throw new RuntimeException("Vous ne pouvez supprimer que les sessions de votre établissement.");
         }
+
         sessionRepository.deleteById(id);
     }
-
 }
-

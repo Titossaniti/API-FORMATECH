@@ -67,4 +67,17 @@ public class User {
         this.userInfo = userInfo;
     }
 
+    @ManyToOne
+    @JoinColumn(name = "establishment_id", nullable = true) // Nullable car que pour les admins
+    private Establishment establishment;
+
+    public Establishment getEstablishment() {
+        return establishment;
+    }
+
+    public void setEstablishment(Establishment establishment) {
+        this.establishment = establishment;
+    }
+
+
 }

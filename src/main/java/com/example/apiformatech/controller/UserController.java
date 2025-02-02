@@ -1,10 +1,14 @@
 package com.example.apiformatech.controller;
 
+import com.example.apiformatech.dto.UserDTO;
+import com.example.apiformatech.exception.ResourceNotFoundException;
 import com.example.apiformatech.model.User;
 import com.example.apiformatech.model.UserInfo;
 import com.example.apiformatech.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,18 +26,34 @@ public class UserController {
     // Créer un utilisateur
     @PostMapping("/register")
     public ResponseEntity<User> registerUser(@RequestBody User user) {
+        if (!user.getRole().getTitle().equals("ADMIN") && user.getEstablishment() != null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(null);
+        }
         User savedUser = userService.saveUser(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
     }
 
+    @PostMapping("/create-admin")
+    public ResponseEntity<?> createAdmin(@RequestBody User user,
+                                         @RequestParam Long establishmentId,
+                                         @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            User createdAdmin = userService.createAdmin(user, establishmentId, userDetails);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdAdmin);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
 
     // Récupérer un utilisateur par ID
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        return userService.getUserById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
+        User user = userService.getUserById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
+        return ResponseEntity.ok(userService.mapToUserDTO(user));
     }
+
 
 
     // Récupérer un utilisateur par email

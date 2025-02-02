@@ -25,14 +25,19 @@ public class SessionUserService {
 
     // Ajouter un étudiant à une session
     public SessionUser addStudentToSession(Long userId, Long sessionId) {
-        if (sessionUserRepository.existsByUserIdAndSessionId(userId, sessionId)) {
-            throw new BadRequestException("Cet étudiant est déjà inscrit à cette session.");
-        }
 
         User student = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("L'utilisateur avec l'ID " + userId + " n'existe pas."));
         Session session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("La session avec l'ID " + sessionId + " n'existe pas."));
+
+        if (!student.getRole().getTitle().equals("STUDENT")) {
+            throw new BadRequestException("Seuls les étudiants peuvent être ajoutés à une session.");
+        }
+
+        if (sessionUserRepository.existsByUserIdAndSessionId(userId, sessionId)) {
+            throw new BadRequestException("Cet étudiant est déjà inscrit à cette session.");
+        }
 
         SessionUser sessionUser = new SessionUser();
         sessionUser.setUser(student);

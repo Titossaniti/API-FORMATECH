@@ -1,8 +1,11 @@
 package com.example.apiformatech.service;
 
+import com.example.apiformatech.exception.BadRequestException;
 import com.example.apiformatech.exception.ResourceNotFoundException;
 import com.example.apiformatech.model.Establishment;
+import com.example.apiformatech.model.User;
 import com.example.apiformatech.repository.EstablishmentRepository;
+import com.example.apiformatech.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,10 +15,12 @@ import java.util.Optional;
 public class EstablishmentService {
 
     private final EstablishmentRepository establishmentRepository;
+    private final UserRepository userRepository;
 
     // Injection des dépendances via le constructeur
-    public EstablishmentService(EstablishmentRepository establishmentRepository) {
+    public EstablishmentService(EstablishmentRepository establishmentRepository, UserRepository userRepository) {
         this.establishmentRepository = establishmentRepository;
+        this.userRepository = userRepository;
     }
 
     // Méthode pour sauvegarder un établissement
@@ -25,6 +30,26 @@ public class EstablishmentService {
         }
         return establishmentRepository.save(establishment);
     }
+
+    // assigner un admin à un établissement
+    public User assignAdminToEstablishment(Long adminId, Long establishmentId) {
+        User admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new ResourceNotFoundException("Admin non trouvé"));
+        Establishment establishment = establishmentRepository.findById(establishmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Établissement non trouvé"));
+
+        if (!admin.getRole().getTitle().equals("ADMIN")) {
+            throw new BadRequestException("Seuls les administrateurs peuvent être rattachés à un établissement.");
+        }
+
+        if (admin.getEstablishment() != null && !admin.getEstablishment().getId().equals(establishmentId)) {
+            throw new BadRequestException("L'admin est déjà rattaché à un autre établissement.");
+        }
+
+        admin.setEstablishment(establishment);
+        return userRepository.save(admin);
+    }
+
 
     // Méthode pour récupérer tous les établissements
     public List<Establishment> getAllEstablishments() {
