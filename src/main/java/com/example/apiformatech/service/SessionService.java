@@ -54,8 +54,6 @@ public class SessionService {
         return sessionRepository.save(session);
     }
 
-
-
     // Ajouter un étudiant à une session
     @Transactional
     public SessionUser addStudentToSession(Long sessionId, Long studentId, User user) {
@@ -84,7 +82,6 @@ public class SessionService {
 
 
     // voir les modules d'un élève
-
     public List<SessionModule> getStudentModules(UserDetails userDetails) {
         User student = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé"));
@@ -98,25 +95,13 @@ public class SessionService {
     }
 
 
-    // Avoir les sessions d'un élève
-
-    public List<Session> getStudentSessions(Long studentId) {
-        User student = userRepository.findById(studentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Élève introuvable"));
-
-        return sessionUserRepository.findSessionsByUser(student);
-    }
-
-
     // Récupérer toutes les sessions
-
     public List<Session> getAllSessions() {
         return sessionRepository.findAll();
     }
 
 
     // Récupérer une session par ID
-
     public Optional<Session> getSessionById(Long id) {
         return sessionRepository.findById(id);
     }
@@ -138,6 +123,24 @@ public class SessionService {
         existingSession.setEndDate(updatedSession.getEndDate());
 
         return sessionRepository.save(existingSession);
+    }
+
+    // Récupérer les sessions d'un établissement
+    public List<Session> getSessionsByEstablishment(Long establishmentId) {
+        return sessionRepository.findByEstablishmentId(establishmentId);
+    }
+
+    // Récupérer les sessions d'un formateur via les modules qu'il anime
+    public List<Session> getTrainerSessions(Long trainerId) {
+        return sessionRepository.findByTrainerId(trainerId);
+    }
+
+    // Récupérer les sessions d'un élève
+    public List<Session> getStudentSessions(Long studentId) {
+        User student = userRepository.findById(studentId)
+                .orElseThrow(() -> new BadRequestException("Élève introuvable"));
+
+        return sessionUserRepository.findSessionsByUser(student);
     }
 
     // Supprimer une session (Admin = uniquement ses sessions)
@@ -163,5 +166,4 @@ public class SessionService {
 
         sessionRepository.deleteById(id);
     }
-
 }

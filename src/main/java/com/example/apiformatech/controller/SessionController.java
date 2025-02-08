@@ -42,16 +42,43 @@ public class SessionController {
         }
     }
 
-
-    // Récupérer toutes les sessions
+    // Récupérer les sessions en fonction du rôle
     @GetMapping
-    public ResponseEntity<List<Session>> getAllSessions() {
-        List<Session> sessions = sessionService.getAllSessions();
+    public ResponseEntity<List<Session>> getAllSessions(@AuthenticationPrincipal UserDetails userDetails) {
+        // Récupération de l'utilisateur connecté
+        User user = userService.getUserByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+
+        List<Session> sessions;
+
+        if (user.getRole().getTitle().equals("SUPERADMIN")) {
+            // Le superadmin récupère toutes les sessions
+            sessions = sessionService.getAllSessions();
+        } else if (user.getRole().getTitle().equals("ADMIN")) {
+            // Un admin ne voit que les sessions de son établissement
+            if (user.getEstablishment() == null) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            sessions = sessionService.getSessionsByEstablishment(user.getEstablishment().getId());
+        } else if (user.getRole().getTitle().equals("TRAINER")) {
+            // Un formateur voit uniquement les sessions des modules qu'il anime
+            sessions = sessionService.getTrainerSessions(user.getId());
+        } else if (user.getRole().getTitle().equals("STUDENT")) {
+            // Un étudiant voit uniquement les sessions où il est inscrit
+            sessions = sessionService.getStudentSessions(user.getId());
+        } else {
+            // Tout autre utilisateur n'a pas accès aux sessions
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         if (sessions.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
+
         return ResponseEntity.ok(sessions);
     }
+
+
 
     // Récupérer une session par ID
     @GetMapping("/{id}")

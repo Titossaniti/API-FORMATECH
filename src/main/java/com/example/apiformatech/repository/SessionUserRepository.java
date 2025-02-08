@@ -23,6 +23,6 @@ public interface SessionUserRepository extends JpaRepository<SessionUser, Long> 
     List<SessionUser> findByUser(User student);
 
     // Récupérer toutes les sessions d’un étudiant
-//    @Query("SELECT su.session FROM SessionUser su WHERE su.user = :student")
+    @Query("SELECT su.session FROM SessionUser su WHERE su.user = :student")
     List<Session> findSessionsByUser(User student);
 }

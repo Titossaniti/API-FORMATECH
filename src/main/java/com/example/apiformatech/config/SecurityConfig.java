@@ -22,10 +22,8 @@ import org. springframework.security.config.annotation.web.configurers.AbstractH
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final UserService userService;
 
     public SecurityConfig(@Lazy UserService userService) {
-        this.userService = userService;
     }
 
     @Bean
@@ -35,12 +33,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         .requestMatchers("/auth/**").permitAll() // Authentification accessible sans token
-                        .requestMatchers(HttpMethod.PUT, "/api/users/{id}").authenticated() // Modifier son profil si on est connecté
-                        .requestMatchers("/api/users/**").hasAnyAuthority("ADMIN", "SUPERADMIN") // Gestion des utilisateurs restreinte
-                        .requestMatchers("/api/sessions/**").hasAnyAuthority("ADMIN", "SUPERADMIN") // Seuls superadmin et admin peuvent gérer les sessions
-                        .requestMatchers("/api/modules/**").hasAnyAuthority("ADMIN", "SUPERADMIN") // Seuls superadmin et admin peuvent gérer leurs modules
-                        .requestMatchers("/api/notes/**").hasAnyAuthority("TRAINER", "STUDENT") // Formateurs et étudiants peuvent consulter les notes
-                        .requestMatchers(HttpMethod.POST, "/api/sessions/{sessionId}/modules/{moduleId}/trainers/{trainerId}").hasAnyAuthority("SUPERADMIN", "ADMIN") // SAdmin et admin peuvent associer session/module/formateur
+//                        .requestMatchers(HttpMethod.PUT, "/api/users/{id}").authenticated() // Modifier son profil si on est connecté
+//                        .requestMatchers("/api/users/**").hasAnyAuthority("ADMIN", "SUPERADMIN") // Gestion des utilisateurs restreinte
+//                        .requestMatchers("/api/sessions/**").hasAnyAuthority("ADMIN", "SUPERADMIN") // Seuls superadmin et admin peuvent gérer les sessions
+//                        .requestMatchers("/api/sessions/**").authenticated()
+//                        .requestMatchers("/api/modules/**").hasAnyAuthority("ADMIN", "SUPERADMIN") // Seuls superadmin et admin peuvent gérer leurs modules
+//                        .requestMatchers("/api/notes/**").hasAnyAuthority("TRAINER", "STUDENT") // Formateurs et étudiants peuvent consulter les notes
+//                        .requestMatchers(HttpMethod.POST, "/api/sessions/{sessionId}/modules/{moduleId}/trainers/{trainerId}").hasAnyAuthority("SUPERADMIN", "ADMIN") // SAdmin et admin peuvent associer session/module/formateur
 
                         .anyRequest().authenticated())// Toutes les autres requêtes nécessitent une authentification
                 .sessionManagement(session -> session
