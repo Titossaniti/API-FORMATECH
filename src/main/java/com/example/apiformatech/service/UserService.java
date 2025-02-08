@@ -212,7 +212,7 @@ public class UserService implements UserDetailsService {
         // Vérifier si un nouveau mot de passe a été fourni
         if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
             if (!updatedUser.getPassword().equals(existingUser.getPassword())) {
-                // Hacher le mot de passe avant de le sauvegarder 🔒
+                // Hacher le mot de passe avant de le sauvegarder
                 existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
             }
         }
@@ -256,7 +256,7 @@ public class UserService implements UserDetailsService {
         // Vérification des permissions
         if (!currentUser.getRole().getTitle().equals("SUPERADMIN") &&
                 (currentUser.getEstablishment() == null || !currentUser.getEstablishment().getId().equals(establishmentId))) {
-            throw new RuntimeException("Vous ne pouvez créer un admin que pour votre propre établissement.");
+            throw new BadRequestException("Vous ne pouvez créer un admin que pour votre propre établissement.");
         }
 
         // Création de l'Admin
@@ -266,6 +266,10 @@ public class UserService implements UserDetailsService {
         admin.setPassword(passwordEncoder.encode(admin.getPassword())); // Hash du mot de passe
 
         return userRepository.save(admin);
+    }
+
+    public List<User> getUsersByRole(String roleTitle) {
+        return userRepository.findByRoleTitle(roleTitle);
     }
 
 }

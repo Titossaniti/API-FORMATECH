@@ -85,10 +85,16 @@ public class UserController {
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
-    // Récupérer tous les utilisateurs
+    // Récupérer tous les utilisateurs / filtrage par rôle possible
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userService.getAllUsers();
+    public ResponseEntity<List<User>> getAllUsers(@RequestParam(required = false) String role) {
+        List<User> users;
+
+        if (role != null) {
+            users = userService.getUsersByRole(role);
+        } else {
+            users = userService.getAllUsers();
+        }
         if (users.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }

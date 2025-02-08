@@ -1,6 +1,7 @@
 package com.example.apiformatech.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
@@ -19,6 +20,7 @@ public class User {
     @NotNull(message = "Le mot de passe est obligatoire")
     @Size(min = 6, message = "Le mot de passe doit comporter au moins 6 caractères")
     @Column(nullable = false)
+    @JsonIgnore
     private String password;
 
     @NotNull(message = "Le rôle est obligatoire")
