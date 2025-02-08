@@ -4,6 +4,8 @@ import com.example.apiformatech.model.StudentModuleComment;
 import com.example.apiformatech.service.StudentModuleCommentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,15 +28,26 @@ public class StudentModuleCommentController {
     }
 
 
-    // Récupérer tous les commentaires et notes
+//    // Récupérer tous les commentaires et notes
+//    @GetMapping
+//    public ResponseEntity<List<StudentModuleComment>> getAllComments() {
+//        List<StudentModuleComment> comments = studentModuleCommentService.getAllComments();
+//        if (comments.isEmpty()) {
+//            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+//        }
+//        return ResponseEntity.ok(comments);
+//    }
+
+    // Récupérer les commentaires en fonction du rôle de l'utilisateur
     @GetMapping
-    public ResponseEntity<List<StudentModuleComment>> getAllComments() {
-        List<StudentModuleComment> comments = studentModuleCommentService.getAllComments();
+    public ResponseEntity<List<StudentModuleComment>> getCommentsByRole(@AuthenticationPrincipal UserDetails userDetails) {
+        List<StudentModuleComment> comments = studentModuleCommentService.getCommentsByRole(userDetails);
         if (comments.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
         return ResponseEntity.ok(comments);
     }
+
 
 
     // Récupérer un commentaire par ID
