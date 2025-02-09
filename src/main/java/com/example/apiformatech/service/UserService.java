@@ -30,7 +30,7 @@ public class UserService implements UserDetailsService {
 
         if (user.getEstablishment() != null) {
             List<UserDTO> adminDTOs = user.getEstablishment().getAdmins().stream()
-                    .map(admin -> new UserDTO(admin.getId(), admin.getEmail(), admin.getRole().getTitle(), null))
+                    .map(admin -> new UserDTO(admin.getId(), admin.getEmail(), admin.getRole().getTitle(), null, null))
                     .collect(Collectors.toList());
 
             establishmentDTO = new EstablishmentDTO(
@@ -45,7 +45,8 @@ public class UserService implements UserDetailsService {
                 user.getId(),
                 user.getEmail(),
                 user.getRole().getTitle(),
-                establishmentDTO
+                establishmentDTO,
+                user.getUserInfo() // Ajout direct de l'objet UserInfo
         );
     }
 
@@ -83,6 +84,25 @@ public class UserService implements UserDetailsService {
                 .credentialsExpired(false)
                 .disabled(false)
                 .build();
+    }
+
+    // Lire ses infos personnelles
+    public UserDTO getAuthenticatedUserProfile(UserDetails userDetails) {
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
+
+        return new UserDTO(
+                user.getId(),
+                user.getEmail(),
+                user.getRole().getTitle(),
+                user.getEstablishment() != null ? new EstablishmentDTO(
+                        user.getEstablishment().getId(),
+                        user.getEstablishment().getName(),
+                        user.getEstablishment().getCity(),
+                        null
+                ) : null,
+                user.getUserInfo()
+        );
     }
 
     // Méthode pour créer un utilisateur
@@ -234,7 +254,6 @@ public class UserService implements UserDetailsService {
 
         return userRepository.save(existingUser);
     }
-
 
     // Méthode pour supprimer un utilisateur
     public void deleteUser(Long id) {

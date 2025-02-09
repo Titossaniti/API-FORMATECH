@@ -6,7 +6,6 @@ import com.example.apiformatech.exception.BadRequestException;
 import com.example.apiformatech.exception.ResourceNotFoundException;
 import com.example.apiformatech.model.Session;
 import com.example.apiformatech.model.User;
-import com.example.apiformatech.model.UserInfo;
 import com.example.apiformatech.service.SessionModuleService;
 import com.example.apiformatech.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -65,6 +64,13 @@ public class UserController {
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
+    }
+
+    // Récupérer ses infos personnelles
+    @GetMapping("/profile")
+    public ResponseEntity<UserDTO> getProfile(@AuthenticationPrincipal UserDetails userDetails) {
+        UserDTO userProfile = userService.getAuthenticatedUserProfile(userDetails);
+        return ResponseEntity.ok(userProfile);
     }
 
     // Récupérer un utilisateur par ID
