@@ -14,73 +14,67 @@ import java.util.List;
 @RequestMapping("/api/comments")
 public class StudentModuleCommentController {
 
-    private final StudentModuleCommentService studentModuleCommentService;
+    private final StudentModuleCommentService commentService;
 
-    public StudentModuleCommentController(StudentModuleCommentService studentModuleCommentService) {
-        this.studentModuleCommentService = studentModuleCommentService;
+    public StudentModuleCommentController(StudentModuleCommentService commentService) {
+        this.commentService = commentService;
     }
 
-    // Ajouter un commentaire et une note
-    @PostMapping
-    public ResponseEntity<StudentModuleComment> addComment(@RequestBody StudentModuleComment comment) {
-        StudentModuleComment savedComment = studentModuleCommentService.saveComment(comment);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedComment);
-    }
-
-
-//    // Récupérer tous les commentaires et notes
-//    @GetMapping
-//    public ResponseEntity<List<StudentModuleComment>> getAllComments() {
-//        List<StudentModuleComment> comments = studentModuleCommentService.getAllComments();
-//        if (comments.isEmpty()) {
-//            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-//        }
-//        return ResponseEntity.ok(comments);
-//    }
-
-    // Récupérer les commentaires en fonction du rôle de l'utilisateur
-    @GetMapping
-    public ResponseEntity<List<StudentModuleComment>> getCommentsByRole(@AuthenticationPrincipal UserDetails userDetails) {
-        List<StudentModuleComment> comments = studentModuleCommentService.getCommentsByRole(userDetails);
-        if (comments.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-        }
-        return ResponseEntity.ok(comments);
-    }
-
-
-
-    // Récupérer un commentaire par ID
-    @GetMapping("/{id}")
-    public ResponseEntity<StudentModuleComment> getCommentById(@PathVariable Long id) {
-        return studentModuleCommentService.getCommentById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-    }
-
-
-    // Mettre à jour un commentaire
-    @PutMapping("/{id}")
-    public ResponseEntity<StudentModuleComment> updateComment(@PathVariable Long id, @RequestBody StudentModuleComment comment) {
+    // Récupérer les commentaires d'un module et d'une session en fonction du rôle
+    @GetMapping("/module/{moduleId}/session/{sessionId}")
+    public ResponseEntity<?> getComments(
+            @PathVariable Long moduleId,
+            @PathVariable Long sessionId,
+            @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            StudentModuleComment updatedComment = studentModuleCommentService.updateComment(id, comment);
-            return ResponseEntity.ok(updatedComment);
+            List<StudentModuleComment> comments =
+                    commentService.getComments(moduleId, sessionId, userDetails);
+            return ResponseEntity.ok(comments);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
+    // Ajouter plusieurs notes et commentaires pour un module et une session
+    @PostMapping("/module/{moduleId}/session/{sessionId}")
+    public ResponseEntity<?> addComments(
+            @PathVariable Long moduleId,
+            @PathVariable Long sessionId,
+            @RequestBody List<StudentModuleComment> comments,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            List<StudentModuleComment> result =
+                    commentService.addComments(moduleId, sessionId, comments, userDetails);
+            return ResponseEntity.status(HttpStatus.CREATED).body(result);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
 
-    // Supprimer un commentaire par ID
+    // Modifier plusieurs notes et commentaires pour un module et une session
+    @PutMapping("/module/{moduleId}/session/{sessionId}")
+    public ResponseEntity<?> updateComments(
+            @PathVariable Long moduleId,
+            @PathVariable Long sessionId,
+            @RequestBody List<StudentModuleComment> comments,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            List<StudentModuleComment> updatedComments =
+                    commentService.updateComments(moduleId, sessionId, comments, userDetails);
+            return ResponseEntity.ok(updatedComments);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    // Supprimer un commentaire
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteComment(@PathVariable Long id) {
+    public ResponseEntity<?> deleteComment(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            studentModuleCommentService.deleteComment(id);
+            commentService.deleteComment(id, userDetails);
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
-
 }
-

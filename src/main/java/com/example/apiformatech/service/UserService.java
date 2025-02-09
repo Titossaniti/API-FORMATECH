@@ -170,7 +170,7 @@ public class UserService implements UserDetailsService {
 
     // Méthode pour récupérer un utilisateur par ID
     public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id); // Utilise le repository pour trouver l'utilisateur par ID
+        return userRepository.findById(id);
     }
 
     // Méthode pour assigner un rôle à un utilisateur

@@ -67,7 +67,6 @@ public class UserController {
         }
     }
 
-
     // Récupérer un utilisateur par ID
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
@@ -75,7 +74,6 @@ public class UserController {
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
         return ResponseEntity.ok(userService.mapToUserDTO(user));
     }
-
 
     // Récupérer un utilisateur par email
     @GetMapping("/email/{email}")

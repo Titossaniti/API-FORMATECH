@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface SessionModuleRepository extends JpaRepository<SessionModule, Long> {
@@ -20,4 +21,9 @@ public interface SessionModuleRepository extends JpaRepository<SessionModule, Lo
 
     List<SessionModule> findByTrainer(User trainer);
 
+    boolean existsByTrainerAndModule_Id(User trainer, Long moduleId);
+
+    boolean existsByTrainerAndSession(User currentUser, Session session);
+
+    Optional<Object> findByModule_IdAndSession_Id(Long moduleId, Long sessionId);
 }
