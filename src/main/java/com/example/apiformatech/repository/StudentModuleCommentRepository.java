@@ -16,16 +16,17 @@ public interface StudentModuleCommentRepository extends JpaRepository<StudentMod
 
     List<StudentModuleComment> findByStudentAndSessionModule(User student, SessionModule sessionModule);
 
-    List<StudentModuleComment> findByTrainerAndSessionModule(User trainer, SessionModule sessionModule);
-
     @Query("SELECT smc FROM StudentModuleComment smc WHERE smc.sessionModule.module.id = :moduleId " +
             "AND smc.sessionModule.session.id = :sessionId " +
             "AND smc.sessionModule.session.establishment = :establishment")
-    List<StudentModuleComment> findByEstablishment(Long moduleId, Long sessionId, Establishment establishment);
+    List<StudentModuleComment> findByEstablishment(@Param("moduleId") Long moduleId,
+                                                   @Param("sessionId") Long sessionId,
+                                                   @Param("establishment") Establishment establishment);
 
     @Query("SELECT smc FROM StudentModuleComment smc WHERE smc.sessionModule.module.id = :moduleId " +
             "AND smc.sessionModule.session.id = :sessionId")
-    List<StudentModuleComment> findByModuleAndSession(Long moduleId, Long sessionId);
+    List<StudentModuleComment> findByModuleAndSession(@Param("moduleId") Long moduleId,
+                                                      @Param("sessionId") Long sessionId);
 
     @Query("SELECT smc FROM StudentModuleComment smc " +
             "WHERE smc.sessionModule.session.id = :sessionId " +
@@ -33,6 +34,8 @@ public interface StudentModuleCommentRepository extends JpaRepository<StudentMod
             "   SELECT sm.module.id FROM SessionModule sm " +
             "   WHERE sm.session.id = :sessionId " +
             "   AND sm.trainer = :trainer)")
+    List<StudentModuleComment> findBySessionForTrainer(@Param("sessionId") Long sessionId,
+                                                       @Param("trainer") User trainer);
 
-    List<StudentModuleComment> findBySessionForTrainer(@Param("sessionId") Long sessionId, @Param("trainer") User trainer);
+    boolean existsByStudentAndSessionModule(User student, SessionModule sessionModule);
 }

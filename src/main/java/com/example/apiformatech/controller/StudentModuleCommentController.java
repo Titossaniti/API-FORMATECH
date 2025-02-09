@@ -1,5 +1,6 @@
 package com.example.apiformatech.controller;
 
+import com.example.apiformatech.dto.StudentModuleCommentDTO;
 import com.example.apiformatech.model.StudentModuleComment;
 import com.example.apiformatech.service.StudentModuleCommentService;
 import org.springframework.http.HttpStatus;
@@ -27,7 +28,7 @@ public class StudentModuleCommentController {
             @PathVariable Long sessionId,
             @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            List<StudentModuleComment> comments =
+            List<StudentModuleCommentDTO> comments =
                     commentService.getComments(moduleId, sessionId, userDetails);
             return ResponseEntity.ok(comments);
         } catch (RuntimeException e) {
@@ -43,7 +44,7 @@ public class StudentModuleCommentController {
             @RequestBody List<StudentModuleComment> comments,
             @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            List<StudentModuleComment> result =
+            List<StudentModuleCommentDTO> result =
                     commentService.addComments(moduleId, sessionId, comments, userDetails);
             return ResponseEntity.status(HttpStatus.CREATED).body(result);
         } catch (RuntimeException e) {
@@ -59,7 +60,7 @@ public class StudentModuleCommentController {
             @RequestBody List<StudentModuleComment> comments,
             @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            List<StudentModuleComment> updatedComments =
+            List<StudentModuleCommentDTO> updatedComments =
                     commentService.updateComments(moduleId, sessionId, comments, userDetails);
             return ResponseEntity.ok(updatedComments);
         } catch (RuntimeException e) {

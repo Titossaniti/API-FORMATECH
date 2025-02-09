@@ -50,7 +50,6 @@ public class EstablishmentService {
         return userRepository.save(admin);
     }
 
-
     // Méthode pour récupérer tous les établissements
     public List<Establishment> getAllEstablishments() {
         return establishmentRepository.findAll();
@@ -76,7 +75,6 @@ public class EstablishmentService {
 
         return establishmentRepository.save(existingEstablishment);
     }
-
 
     // Méthode pour supprimer un établissement par ID
     public void deleteEstablishment(Long id) {

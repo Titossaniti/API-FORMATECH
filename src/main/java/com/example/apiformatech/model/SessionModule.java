@@ -9,7 +9,10 @@ import java.util.Date;
 
 
 @Entity
-@Table(name = "session_modules")
+@Table(name = "session_modules",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"module_id", "session_id"})
+        })
 public class SessionModule {
 
     @Id

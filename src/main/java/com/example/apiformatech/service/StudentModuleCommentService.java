@@ -1,5 +1,6 @@
 package com.example.apiformatech.service;
 
+import com.example.apiformatech.dto.StudentModuleCommentDTO;
 import com.example.apiformatech.exception.BadRequestException;
 import com.example.apiformatech.exception.ResourceNotFoundException;
 import com.example.apiformatech.model.SessionModule;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class StudentModuleCommentService {
@@ -36,7 +38,7 @@ public class StudentModuleCommentService {
 
     // Ajouter plusieurs notes et commentaires pour un module et une session
     @Transactional
-    public List<StudentModuleComment> addComments(Long moduleId, Long sessionId,
+    public List<StudentModuleCommentDTO> addComments(Long moduleId, Long sessionId,
                                                   List<StudentModuleComment> comments,
                                                   UserDetails userDetails) {
         User trainer = userRepository.findByEmail(userDetails.getUsername())
@@ -54,17 +56,32 @@ public class StudentModuleCommentService {
                 throw new BadRequestException("L'élève " + comment.getStudent().getId() + " n'est pas inscrit à cette session.");
             }
 
+            // Vérifier qu'un commentaire n'existe pas déjà pour cet élève
+            boolean commentExists = commentRepository.existsByStudentAndSessionModule(comment.getStudent(), sessionModule);
+            if (commentExists) {
+                throw new BadRequestException("Un commentaire existe déjà pour l'élève " + comment.getStudent().getId() + " dans ce module et cette session.");
+            }
+
             comment.setTrainer(trainer);
             comment.setSessionModule(sessionModule);
             comment.setCreatedAt(new Date());
 
-            return commentRepository.save(comment);
-        }).toList();
+            StudentModuleComment savedComment = commentRepository.save(comment);
+            return new StudentModuleCommentDTO(
+                    savedComment.getId(),
+                    savedComment.getStudent().getId(),
+                    savedComment.getGrade(),
+                    savedComment.getComment(),
+                    savedComment.getSessionModule().getModule().getId(),
+                    savedComment.getSessionModule().getSession().getId()
+            );
+        }).collect(Collectors.toList());
     }
+
 
     // Modifier plusieurs notes et commentaires pour un module et une session
     @Transactional
-    public List<StudentModuleComment> updateComments(Long moduleId, Long sessionId,
+    public List<StudentModuleCommentDTO> updateComments(Long moduleId, Long sessionId,
                                                      List<StudentModuleComment> comments,
                                                      UserDetails userDetails) {
         User trainer = userRepository.findByEmail(userDetails.getUsername())
@@ -82,28 +99,51 @@ public class StudentModuleCommentService {
             existingComment.setComment(comment.getComment());
             existingComment.setUpdatedAt(new Date());
 
-            return commentRepository.save(existingComment);
-        }).toList();
+            StudentModuleComment updatedComment = commentRepository.save(existingComment);
+            return new StudentModuleCommentDTO(
+                    updatedComment.getId(),
+                    updatedComment.getStudent().getId(),
+                    updatedComment.getGrade(),
+                    updatedComment.getComment(),
+                    updatedComment.getSessionModule().getModule().getId(),
+                    updatedComment.getSessionModule().getSession().getId()
+            );
+        }).collect(Collectors.toList());
     }
 
     // Récupérer les commentaires d'un module et d'une session en fonction du rôle
-    public List<StudentModuleComment> getComments(Long moduleId, Long sessionId, UserDetails userDetails) {
+    public List<StudentModuleCommentDTO> getComments(Long moduleId, Long sessionId, UserDetails userDetails) {
+        // Récupération de l'utilisateur
         User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
 
-        // Vérification que le module est bien lié à la session
+        // Récupère le premier résultat
         SessionModule sessionModule = (SessionModule) sessionModuleRepository.findByModule_IdAndSession_Id(moduleId, sessionId)
+                .stream()
+                .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("Module non lié à cette session."));
 
-        return switch (user.getRole().getTitle()) {
+        // Sélection des commentaires en fonction du rôle
+        List<StudentModuleComment> comments = switch (user.getRole().getTitle()) {
             case "SUPERADMIN" -> commentRepository.findByModuleAndSession(moduleId, sessionId);
             case "ADMIN" -> commentRepository.findByEstablishment(moduleId, sessionId, user.getEstablishment());
             case "TRAINER" -> commentRepository.findBySessionForTrainer(sessionId, user);
             case "STUDENT" -> commentRepository.findByStudentAndSessionModule(user, sessionModule);
             default -> throw new BadRequestException("Accès interdit.");
         };
-    }
 
+        // Transformation en DTO pour simplifier la réponse
+        return comments.stream()
+                .map(comment -> new StudentModuleCommentDTO(
+                        comment.getId(),
+                        comment.getStudent().getId(),
+                        comment.getGrade(),
+                        comment.getComment(),
+                        comment.getSessionModule().getModule().getId(),
+                        comment.getSessionModule().getSession().getId()
+                ))
+                .collect(Collectors.toList());
+    }
 
     // Supprimer un commentaire (uniquement si le formateur est l’auteur)
     public void deleteComment(Long id, UserDetails userDetails) {
