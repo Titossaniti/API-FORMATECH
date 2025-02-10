@@ -46,10 +46,9 @@ public class UserService implements UserDetailsService {
                 user.getEmail(),
                 user.getRole().getTitle(),
                 establishmentDTO,
-                user.getUserInfo() // Ajout direct de l'objet UserInfo
+                user.getUserInfo()
         );
     }
-
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -263,7 +262,7 @@ public class UserService implements UserDetailsService {
         userRepository.deleteById(id);
     }
 
-    // Create Admin car il doit avoir un establishment lié obligatoirement
+    // Create pour l'Admin, car il doit avoir un establishment lié obligatoirement
     public User createAdmin(User admin, Long establishmentId, UserDetails userDetails) {
         // Récupérer l'utilisateur connecté
         User currentUser = userRepository.findByEmail(userDetails.getUsername())
