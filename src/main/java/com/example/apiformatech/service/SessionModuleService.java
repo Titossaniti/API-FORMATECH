@@ -1,5 +1,6 @@
 package com.example.apiformatech.service;
 
+import com.example.apiformatech.dto.SessionModuleDTO;
 import com.example.apiformatech.exception.ResourceNotFoundException;
 import com.example.apiformatech.exception.BadRequestException;
 import com.example.apiformatech.model.Module;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class SessionModuleService {
@@ -69,28 +71,35 @@ public class SessionModuleService {
     }
 
     // Récupérer toutes les sessions/modules selon le role de l'user
-    public List<SessionModule> getAllSessionModules(UserDetails userDetails) {
+    public List<SessionModuleDTO> getAllSessionModules(UserDetails userDetails) {
         User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
 
+        List<SessionModule> sessionModules;
+
         if (user.getRole().getTitle().equals("SUPERADMIN")) {
-            // SuperAdmin peut voir toutes les sessions/modules
-            return sessionModuleRepository.findAll();
+            // SuperAdmin voit tout
+            sessionModules = sessionModuleRepository.findAll();
         } else if (user.getRole().getTitle().equals("ADMIN")) {
-            // Admin ne voit que les sessions/modules de son établissement
+            // Admin voit uniquement les sessions/modules de son établissement
             if (user.getEstablishment() == null) {
                 throw new BadRequestException("Vous n'êtes pas rattaché à un établissement.");
             }
-            return sessionModuleRepository.findBySession_EstablishmentId(user.getEstablishment().getId());
+            sessionModules = sessionModuleRepository.findBySession_EstablishmentId(user.getEstablishment().getId());
         } else if (user.getRole().getTitle().equals("TRAINER")) {
-            // Formateur ne voit que les sessions/modules où il est assigné
-            return sessionModuleRepository.findByTrainerId(user.getId());
+            // Formateur voit uniquement les sessions/modules où il est assigné
+            sessionModules = sessionModuleRepository.findByTrainerId(user.getId());
         } else if (user.getRole().getTitle().equals("STUDENT")) {
-            // Élève ne voit que les sessions/modules des sessions auxquelles il est inscrit
-            return sessionModuleRepository.findBySession_StudentsId(user.getId());
+            // Élève voit uniquement les sessions/modules liés aux sessions où il est inscrit
+            sessionModules = sessionModuleRepository.findBySession_StudentsId(user.getId());
         } else {
             throw new BadRequestException("Accès interdit.");
         }
+
+        // Transformer les entités en DTOs
+        return sessionModules.stream()
+                .map(sm -> new SessionModuleDTO(sm.getSession().getId(), sm.getModule().getId(), sm.getTrainer().getId()))
+                .collect(Collectors.toList());
     }
 
     // Récupérer tous les modules d'un formateur

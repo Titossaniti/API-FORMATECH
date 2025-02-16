@@ -1,5 +1,6 @@
 package com.example.apiformatech.controller;
 
+import com.example.apiformatech.dto.SessionModuleDTO;
 import com.example.apiformatech.model.SessionModule;
 import com.example.apiformatech.service.SessionModuleService;
 import com.example.apiformatech.model.Module;
@@ -47,8 +48,8 @@ public class SessionModuleController {
 
     // Récupérer toutes les relations session-module
     @GetMapping
-    public ResponseEntity<List<SessionModule>> getAllSessionModules(@AuthenticationPrincipal UserDetails userDetails) {
-        List<SessionModule> sessionModules = sessionModuleService.getAllSessionModules(userDetails);
+    public ResponseEntity<List<SessionModuleDTO>> getAllSessionModules(@AuthenticationPrincipal UserDetails userDetails) {
+        List<SessionModuleDTO> sessionModules = sessionModuleService.getAllSessionModules(userDetails);
         if (sessionModules.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
