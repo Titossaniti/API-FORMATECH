@@ -78,8 +78,6 @@ public class SessionController {
         return ResponseEntity.ok(sessions);
     }
 
-
-
     // Récupérer une session par ID
     @GetMapping("/{id}")
     public ResponseEntity<Session> getSessionById(@PathVariable Long id) {
@@ -103,12 +101,16 @@ public class SessionController {
 
     // Supprimer une session (Admin uniquement dans son établissement)
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteSession(@PathVariable Long id, @AuthenticationPrincipal User user) {
+    public ResponseEntity<?> deleteSession(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
         try {
+            User user = userService.getUserByEmail(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+
             sessionService.deleteSession(id, user);
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+
 }

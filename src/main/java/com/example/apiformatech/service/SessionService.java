@@ -149,10 +149,14 @@ public class SessionService {
         Session session = sessionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Session non trouvée"));
 
-        if (!user.getRole().getTitle().equals("SUPERADMIN") &&
-                !user.getEstablishment().equals(session.getEstablishment())) {
-            throw new BadRequestException("Vous ne pouvez supprimer que les sessions de votre établissement.");
-        }
+        // Vérifier si l'utilisateur est superadmin, il doit pouvoir tout supprimer
+        if (!user.getRole().getTitle().equals("SUPERADMIN")
+                && (user.getEstablishment() == null
+                || !user.getEstablishment().equals(session.getEstablishment())))
+        {
+                throw new BadRequestException("Vous ne pouvez supprimer que les sessions de votre établissement.");
+            }
+
 
         // Vérifier s’il y a des étudiants dans la session
         if (!sessionUserRepository.findByUser(user).isEmpty()) {
@@ -166,4 +170,5 @@ public class SessionService {
 
         sessionRepository.deleteById(id);
     }
+
 }
