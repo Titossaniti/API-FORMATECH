@@ -1,5 +1,6 @@
 package com.example.apiformatech.controller;
 
+import com.example.apiformatech.dto.CreateTrainerDTO;
 import com.example.apiformatech.dto.UpdateUserDTO;
 import com.example.apiformatech.dto.UserDTO;
 import com.example.apiformatech.exception.BadRequestException;
@@ -47,6 +48,19 @@ public class UserController {
         try {
             User createdAdmin = userService.createAdmin(user, establishmentId, userDetails);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdAdmin);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    // Créer un formateur (seuls Admin et Superadmin peuvent le faire)
+    @PostMapping("/trainer")
+    public ResponseEntity<?> createTrainer(
+            @RequestBody CreateTrainerDTO trainerDTO,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            User trainer = userService.createTrainer(trainerDTO, userDetails);
+            return ResponseEntity.status(HttpStatus.CREATED).body(trainer);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }

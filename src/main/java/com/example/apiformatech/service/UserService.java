@@ -1,5 +1,6 @@
 package com.example.apiformatech.service;
 
+import com.example.apiformatech.dto.CreateTrainerDTO;
 import com.example.apiformatech.exception.BadRequestException;
 import com.example.apiformatech.exception.ResourceNotFoundException;
 import com.example.apiformatech.model.*;
@@ -288,6 +289,43 @@ public class UserService implements UserDetailsService {
 
         return userRepository.save(admin);
     }
+
+    @Transactional
+    public User createTrainer(CreateTrainerDTO trainerDTO, UserDetails userDetails) {
+        User adminOrSuperadmin = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
+
+        if (!adminOrSuperadmin.getRole().getTitle().equals("SUPERADMIN") &&
+                !adminOrSuperadmin.getRole().getTitle().equals("ADMIN")) {
+            throw new BadRequestException("Seuls les administrateurs et superadmin peuvent créer un formateur.");
+        }
+
+        if (userRepository.existsByEmail(trainerDTO.getEmail())) {
+            throw new BadRequestException("Un utilisateur avec cet email existe déjà.");
+        }
+
+        User trainer = new User();
+        trainer.setEmail(trainerDTO.getEmail());
+        trainer.setPassword(passwordEncoder.encode(trainerDTO.getPassword()));
+        trainer.setRole(roleRepository.findByTitle("TRAINER")
+                .orElseThrow(() -> new ResourceNotFoundException("Rôle TRAINER introuvable")));
+
+        userRepository.save(trainer);
+
+        UserInfo userInfo = new UserInfo();
+        userInfo.setFirstname(trainerDTO.getUserInfo().getFirstname());
+        userInfo.setLastname(trainerDTO.getUserInfo().getLastname());
+        userInfo.setPhone(trainerDTO.getUserInfo().getPhone());
+        userInfo.setBirthdate(trainerDTO.getUserInfo().getBirthdate());
+        userInfo.setUser(trainer);
+
+        userInfoRepository.save(userInfo);
+
+        trainer.setUserInfo(userInfo);
+        return userRepository.save(trainer);
+    }
+
+
 
     public List<User> getUsersByRole(String roleTitle) {
         return userRepository.findByRoleTitle(roleTitle);
