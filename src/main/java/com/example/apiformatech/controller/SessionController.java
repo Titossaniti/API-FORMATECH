@@ -90,14 +90,18 @@ public class SessionController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateSession(@PathVariable Long id,
                                            @RequestBody Session session,
-                                           @AuthenticationPrincipal User user) {
+                                           @AuthenticationPrincipal UserDetails userDetails) {
         try {
+            User user = userService.getUserByEmail(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+
             Session updatedSession = sessionService.updateSession(id, session, user);
             return ResponseEntity.ok(updatedSession);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+
 
     // Supprimer une session (Admin uniquement dans son établissement)
     @DeleteMapping("/{id}")

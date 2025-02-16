@@ -108,21 +108,23 @@ public class SessionService {
 
     // Mettre à jour une session (Admin = uniquement ses sessions)
     @Transactional
-    public Session updateSession(Long id, Session updatedSession, User user) {
-        Session existingSession = sessionRepository.findById(id)
+    public Session updateSession(Long id, Session newSessionData, User user) {
+        Session session = sessionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Session non trouvée"));
 
+        // Seul un superadmin ou un admin de l'établissement peut modifier la session
         if (!user.getRole().getTitle().equals("SUPERADMIN") &&
-                !user.getEstablishment().equals(existingSession.getEstablishment())) {
+                (user.getEstablishment() == null || !user.getEstablishment().equals(session.getEstablishment()))) {
             throw new BadRequestException("Vous ne pouvez modifier que les sessions de votre établissement.");
         }
 
-        existingSession.setName(updatedSession.getName());
-        existingSession.setDescription(updatedSession.getDescription());
-        existingSession.setStartDate(updatedSession.getStartDate());
-        existingSession.setEndDate(updatedSession.getEndDate());
+        session.setName(newSessionData.getName());
+        session.setType(newSessionData.getType());
+        session.setStartDate(newSessionData.getStartDate());
+        session.setEndDate(newSessionData.getEndDate());
+        session.setDescription(newSessionData.getDescription());
 
-        return sessionRepository.save(existingSession);
+        return sessionRepository.save(session);
     }
 
     // Récupérer les sessions d'un établissement
