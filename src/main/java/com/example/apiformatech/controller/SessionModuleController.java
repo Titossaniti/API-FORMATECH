@@ -47,8 +47,8 @@ public class SessionModuleController {
 
     // Récupérer toutes les relations session-module
     @GetMapping
-    public ResponseEntity<List<SessionModule>> getAllSessionModules() {
-        List<SessionModule> sessionModules = sessionModuleService.getAllSessionModules();
+    public ResponseEntity<List<SessionModule>> getAllSessionModules(@AuthenticationPrincipal UserDetails userDetails) {
+        List<SessionModule> sessionModules = sessionModuleService.getAllSessionModules(userDetails);
         if (sessionModules.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }

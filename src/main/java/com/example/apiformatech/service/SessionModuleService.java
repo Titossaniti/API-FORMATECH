@@ -68,9 +68,29 @@ public class SessionModuleService {
         return sessionModuleRepository.save(sessionModule);
     }
 
-    // Récupérer toutes les sessions/modules
-    public List<SessionModule> getAllSessionModules() {
-        return sessionModuleRepository.findAll();
+    // Récupérer toutes les sessions/modules selon le role de l'user
+    public List<SessionModule> getAllSessionModules(UserDetails userDetails) {
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
+
+        if (user.getRole().getTitle().equals("SUPERADMIN")) {
+            // SuperAdmin peut voir toutes les sessions/modules
+            return sessionModuleRepository.findAll();
+        } else if (user.getRole().getTitle().equals("ADMIN")) {
+            // Admin ne voit que les sessions/modules de son établissement
+            if (user.getEstablishment() == null) {
+                throw new BadRequestException("Vous n'êtes pas rattaché à un établissement.");
+            }
+            return sessionModuleRepository.findBySession_EstablishmentId(user.getEstablishment().getId());
+        } else if (user.getRole().getTitle().equals("TRAINER")) {
+            // Formateur ne voit que les sessions/modules où il est assigné
+            return sessionModuleRepository.findByTrainerId(user.getId());
+        } else if (user.getRole().getTitle().equals("STUDENT")) {
+            // Élève ne voit que les sessions/modules des sessions auxquelles il est inscrit
+            return sessionModuleRepository.findBySession_StudentsId(user.getId());
+        } else {
+            throw new BadRequestException("Accès interdit.");
+        }
     }
 
     // Récupérer tous les modules d'un formateur
