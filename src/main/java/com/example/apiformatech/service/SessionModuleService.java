@@ -98,7 +98,13 @@ public class SessionModuleService {
 
         // Transformer les entités en DTOs
         return sessionModules.stream()
-                .map(sm -> new SessionModuleDTO(sm.getSession().getId(), sm.getModule().getId(), sm.getTrainer().getId()))
+                .map(sm -> new SessionModuleDTO(
+                        sm.getSession().getId(),
+                        sm.getModule().getId(),
+                        sm.getTrainer().getId(),
+                        sm.getStartDate(),
+                        sm.getEndDate()
+                ))
                 .collect(Collectors.toList());
     }
 
