@@ -4,6 +4,8 @@ import com.example.apiformatech.model.Establishment;
 import com.example.apiformatech.service.EstablishmentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,16 +33,18 @@ public class EstablishmentController {
         }
     }
 
-    // Récupérer tous les établissements
+    // Récupérer tous les établissements en fonction du rôle de l'utilisateur
     @GetMapping
-    public ResponseEntity<List<Establishment>> getAllEstablishments() {
-        List<Establishment> establishments = establishmentService.getAllEstablishments();
+    public ResponseEntity<List<Establishment>> getAllEstablishments(
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        List<Establishment> establishments = establishmentService.getAllEstablishments(userDetails);
+
         if (establishments.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
         return ResponseEntity.ok(establishments);
     }
-
 
     // Récupérer un établissement par ID
     @GetMapping("/{id}")

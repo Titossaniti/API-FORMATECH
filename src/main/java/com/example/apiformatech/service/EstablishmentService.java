@@ -6,6 +6,7 @@ import com.example.apiformatech.model.Establishment;
 import com.example.apiformatech.model.User;
 import com.example.apiformatech.repository.EstablishmentRepository;
 import com.example.apiformatech.repository.UserRepository;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -50,10 +51,30 @@ public class EstablishmentService {
         return userRepository.save(admin);
     }
 
-    // Méthode pour récupérer tous les établissements
-    public List<Establishment> getAllEstablishments() {
-        return establishmentRepository.findAll();
+    // Méthode pour récupérer les établissements en fonction du rôle
+    public List<Establishment> getAllEstablishments(UserDetails userDetails) {
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
+
+        // Si l'utilisateur est SUPERADMIN, récupérer tous les établissements
+        if (user.getRole().getTitle().equals("SUPERADMIN")) {
+            return establishmentRepository.findAll();
+        }
+
+        // Si l'utilisateur est ADMIN, récupérer uniquement son établissement
+        else if (user.getRole().getTitle().equals("ADMIN")) {
+            if (user.getEstablishment() == null) {
+                throw new BadRequestException("Aucun établissement associé à cet administrateur.");
+            }
+            return List.of(user.getEstablishment());
+        }
+
+        // Si l'utilisateur n'est ni SUPERADMIN ni ADMIN, accès interdit
+        else {
+            throw new BadRequestException("Accès interdit.");
+        }
     }
+
 
     // Méthode pour récupérer un établissement par ID
     public Optional<Establishment> getEstablishmentById(Long id) {

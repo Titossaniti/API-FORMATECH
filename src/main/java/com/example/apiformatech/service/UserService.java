@@ -264,24 +264,27 @@ public class UserService implements UserDetailsService {
 
     // Create pour l'Admin, car il doit avoir un establishment lié obligatoirement
     public User createAdmin(User admin, Long establishmentId, UserDetails userDetails) {
-        // Récupérer l'utilisateur connecté
+        // Vérifier si le mot de passe est null
+        if (admin.getPassword() == null || admin.getPassword().isEmpty()) {
+            throw new BadRequestException("Un mot de passe doit être enregistré.");
+        }
+
         User currentUser = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
 
         Establishment establishment = establishmentRepository.findById(establishmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Établissement non trouvé"));
 
-        // Vérification des permissions
         if (!currentUser.getRole().getTitle().equals("SUPERADMIN") &&
                 (currentUser.getEstablishment() == null || !currentUser.getEstablishment().getId().equals(establishmentId))) {
             throw new BadRequestException("Vous ne pouvez créer un admin que pour votre propre établissement.");
         }
 
-        // Création de l'Admin
         admin.setRole(roleRepository.findByTitle("ADMIN")
                 .orElseThrow(() -> new ResourceNotFoundException("Rôle ADMIN introuvable")));
         admin.setEstablishment(establishment);
-        admin.setPassword(passwordEncoder.encode(admin.getPassword())); // Hash du mot de passe
+
+        admin.setPassword(passwordEncoder.encode(admin.getPassword()));
 
         return userRepository.save(admin);
     }
