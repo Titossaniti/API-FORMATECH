@@ -30,13 +30,13 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private UserInfo userInfo;
 
-    public Long getId() {
-        return id;
-    }
+    @ManyToOne
+    @JoinColumn(name = "establishment_id", nullable = true) // Nullable because its only for admins
+    private Establishment establishment;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public Long getId() { return id; }
+
+    public void setId(Long id) { this.id = id; }
 
     public String getEmail() {
         return email;
@@ -67,10 +67,6 @@ public class User {
     public void setUserInfo(UserInfo userInfo) {
         this.userInfo = userInfo;
     }
-
-    @ManyToOne
-    @JoinColumn(name = "establishment_id", nullable = true) // Nullable car que pour les admins
-    private Establishment establishment;
 
     public Establishment getEstablishment() {
         return establishment;

@@ -68,13 +68,13 @@ public class UserService implements UserDetailsService {
         this.sessionUserRepository = sessionUserRepository;
     }
 
-    // Implémentation de la méthode de UserDetailsService
+    // Implément methode of UserDetailsService
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found, email: " + email));
 
-        // Créer un UserDetails à partir de l'utilisateur trouvé
+        // Create UserDetails from user found
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getEmail())
                 .password(user.getPassword())
@@ -86,7 +86,7 @@ public class UserService implements UserDetailsService {
                 .build();
     }
 
-    // Lire ses infos personnelles
+    // Read userInfo
     public UserDTO getAuthenticatedUserProfile(UserDetails userDetails) {
         User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
@@ -105,7 +105,7 @@ public class UserService implements UserDetailsService {
         );
     }
 
-    // Méthode pour créer un utilisateur
+    // Create user method
     public User saveUser(User user) {
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new BadRequestException("Cet email est déjà utilisé.");
@@ -114,7 +114,7 @@ public class UserService implements UserDetailsService {
         if (user.getRole().getTitle().equals("SUPERADMIN") && user.getEstablishment() != null) {
             throw new BadRequestException("Un superadmin ne peut pas être rattaché à un établissement.");
         }
-        // Vérifier si l'utilisateur est un ADMIN et limite la création aux élèves et formateurs
+        // Verify if user is ADMIN
         if (user.getRole().getTitle().equals("ADMIN")) {
             if (!user.getRole().getTitle().equals("STUDENT") && !user.getRole().getTitle().equals("TRAINER")) {
                 throw new BadRequestException("Un admin ne peut créer que des élèves ou des formateurs.");
@@ -125,11 +125,11 @@ public class UserService implements UserDetailsService {
         return userRepository.save(user);
     }
 
-    // Créer des élèves pour un établissement et les assigner à une session
+    // Create students and assign them to a session
     @Transactional
     public List<User> createStudents(List<User> students, Long sessionId, UserDetails userDetails) {
 
-        // Vérifier que l'utilisateur qui fait la requête est un admin ou superadmin
+        // Verify if user is admin or superadmin
         User currentUser = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
 
@@ -137,34 +137,34 @@ public class UserService implements UserDetailsService {
             throw new BadRequestException("Seuls superadmin ou admin peuvent ajouter des étudiants.");
         }
 
-        // Vérifier que la session existe
+        // Verify is the session exists
         Session session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Session non trouvée"));
 
-        // Si l'utilisateur est un admin, il ne peut ajouter des étudiants que dans son établissement
+        // If user is admin, he can add student to its own establishment only
         if (currentUser.getRole().getTitle().equals("ADMIN") &&
                 !currentUser.getEstablishment().equals(session.getEstablishment())) {
             throw new BadRequestException("Vous ne pouvez ajouter des étudiants que dans votre établissement.");
         }
 
-        // Récupération du rôle STUDENT une seule fois
+        // Get the student role
         Role studentRole = roleRepository.findByTitle("STUDENT")
                 .orElseThrow(() -> new ResourceNotFoundException("Rôle STUDENT introuvable"));
 
         return students.stream().map(student -> {
 
-            // Vérifier si l'étudiant existe déjà
+            // Verify is the user already exists
             Optional<User> existingStudent = userRepository.findByEmail(student.getEmail());
 
             User studentToSave;
             if (existingStudent.isPresent()) {
                 studentToSave = existingStudent.get();
             } else {
-                // Assigner le rôle STUDENT directement
+                // Give student role to the added user
                 student.setRole(studentRole);
                 student.setPassword(passwordEncoder.encode(student.getPassword()));
 
-                // Enregistrer l'utilisateur
+                // Save user
                 studentToSave = userRepository.save(student);
             }
 
@@ -179,22 +179,22 @@ public class UserService implements UserDetailsService {
         }).toList();
     }
 
-    // Méthode pour récupérer un utilisateur par email
+    // Get user from its mail
     public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmailWithEstablishment(email);
     }
 
-    // Méthode pour lister l'ensemble des users
+    // Get all users
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
-    // Méthode pour récupérer un utilisateur par ID
+    // Get user by its id
     public Optional<User> getUserById(Long id) {
         return userRepository.findById(id);
     }
 
-    // Méthode pour assigner un rôle à un utilisateur
+    // Assign a role to an user
     public User assignRoleToUser(String email, String roleTitle) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         Role role = roleRepository.findByTitle(roleTitle).orElseThrow(() -> new ResourceNotFoundException("Role not found"));
@@ -202,43 +202,43 @@ public class UserService implements UserDetailsService {
         return userRepository.save(user);
     }
 
-    // Méthode pour mettre à jour un utilisateur et ses informations personnelles
+    // Method to update user and userInfo
     @Transactional
     public User updateUserAndInfo(Long id, User updatedUser, UserInfo updatedInfo, UserDetails userDetails) {
 
-        // Récupérer l'utilisateur connecté
+        // Get user currently connected
         User currentUser = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
 
-        // Récupérer l'utilisateur à modifier
+        // Get the selected user
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur introuvable"));
 
-        // Vérification des permissions
+        // Verify permissions
         if (currentUser.getRole().getTitle().equals("ADMIN")) {
-            // Un ADMIN ne peut pas modifier un autre ADMIN ou un SUPERADMIN
+            // ADMIN can't modify another ADMIN or a SUPERADMIN
             if (existingUser.getRole().getTitle().equals("ADMIN") || existingUser.getRole().getTitle().equals("SUPERADMIN")) {
                 throw new BadRequestException("Un admin ne peut pas modifier un autre admin ou un superadmin.");
             }
         } else if (currentUser.getRole().getTitle().equals("STUDENT") || currentUser.getRole().getTitle().equals("TRAINER")) {
-            // Un étudiant ou formateur ne peut modifier que son propre profil
+            // Student and trainer can only modify their own profile
             if (!currentUser.getId().equals(existingUser.getId())) {
                 throw new BadRequestException("Vous ne pouvez modifier que votre propre profil.");
             }
         }
 
-        // Mise à jour des informations de base de User
+        // update user
         existingUser.setEmail(updatedUser.getEmail());
 
-        // Vérifier si un nouveau mot de passe a été fourni
+        // Check if new password has been set
         if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
             if (!updatedUser.getPassword().equals(existingUser.getPassword())) {
-                // Hacher le mot de passe avant de le sauvegarder
+                // Hashing password
                 existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
             }
         }
 
-        // Mise à jour ou création de UserInfo
+        // Update UserInfo or create it if it doesn't exist
         if (updatedInfo != null) {
             UserInfo existingUserInfo = existingUser.getUserInfo();
             if (existingUserInfo != null) {
@@ -256,7 +256,7 @@ public class UserService implements UserDetailsService {
         return userRepository.save(existingUser);
     }
 
-    // Méthode pour supprimer un utilisateur
+    // Delete an user
     public void deleteUser(Long id) {
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("Utilisateur avec l'ID " + id + " n'existe pas");
@@ -264,9 +264,9 @@ public class UserService implements UserDetailsService {
         userRepository.deleteById(id);
     }
 
-    // Create pour l'Admin, car il doit avoir un establishment lié obligatoirement
+    // Special method to create an admin, with admin role and the mandatory establishment
     public User createAdmin(User admin, Long establishmentId, UserDetails userDetails) {
-        // Vérifier si le mot de passe est null
+        // Check if there is a password
         if (admin.getPassword() == null || admin.getPassword().isEmpty()) {
             throw new BadRequestException("Un mot de passe doit être enregistré.");
         }
@@ -291,37 +291,44 @@ public class UserService implements UserDetailsService {
         return userRepository.save(admin);
     }
 
+    // Special method to create a trainer (only admins and super admins can do this)
     @Transactional
     public User createTrainer(CreateTrainerDTO trainerDTO, UserDetails userDetails) {
+        // Check if current user exists
         User adminOrSuperadmin = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
-
+        // Check current user role
         if (!adminOrSuperadmin.getRole().getTitle().equals("SUPERADMIN") &&
                 !adminOrSuperadmin.getRole().getTitle().equals("ADMIN")) {
-            throw new BadRequestException("Seuls les administrateurs et superadmin peuvent créer un formateur.");
+            throw new BadRequestException("Seuls les admins et superadmins peuvent créer un formateur.");
         }
-
+        // Check if the new added user is unique
         if (userRepository.existsByEmail(trainerDTO.getEmail())) {
             throw new BadRequestException("Un utilisateur avec cet email existe déjà.");
         }
-
+        // Create user
         User trainer = new User();
         trainer.setEmail(trainerDTO.getEmail());
+        // Hashing password
         trainer.setPassword(passwordEncoder.encode(trainerDTO.getPassword()));
+        // TRAINER role added to the user if the role in find in database
         trainer.setRole(roleRepository.findByTitle("TRAINER")
                 .orElseThrow(() -> new ResourceNotFoundException("Rôle TRAINER introuvable")));
 
+        // Save the user
         userRepository.save(trainer);
 
+        // Creating userInfo for the user
         UserInfo userInfo = new UserInfo();
         userInfo.setFirstname(trainerDTO.getUserInfo().getFirstname());
         userInfo.setLastname(trainerDTO.getUserInfo().getLastname());
         userInfo.setPhone(trainerDTO.getUserInfo().getPhone());
         userInfo.setBirthdate(trainerDTO.getUserInfo().getBirthdate());
         userInfo.setUser(trainer);
-
+        // Saving userInfo
         userInfoRepository.save(userInfo);
 
+        // Link user with userInfo and save the user
         trainer.setUserInfo(userInfo);
         return userRepository.save(trainer);
     }
