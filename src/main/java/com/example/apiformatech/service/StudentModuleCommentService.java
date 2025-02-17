@@ -113,26 +113,30 @@ public class StudentModuleCommentService {
 
     // Récupérer les commentaires d'un module et d'une session en fonction du rôle
     public List<StudentModuleCommentDTO> getComments(Long moduleId, Long sessionId, UserDetails userDetails) {
-        // Récupération de l'utilisateur
         User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
 
-        // Récupère le premier résultat
         SessionModule sessionModule = (SessionModule) sessionModuleRepository.findByModule_IdAndSession_Id(moduleId, sessionId)
-                .stream()
-                .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("Module non lié à cette session."));
 
-        // Sélection des commentaires en fonction du rôle
-        List<StudentModuleComment> comments = switch (user.getRole().getTitle()) {
-            case "SUPERADMIN" -> commentRepository.findByModuleAndSession(moduleId, sessionId);
-            case "ADMIN" -> commentRepository.findByEstablishment(moduleId, sessionId, user.getEstablishment());
-            case "TRAINER" -> commentRepository.findBySessionForTrainer(sessionId, user);
-            case "STUDENT" -> commentRepository.findByStudentAndSessionModule(user, sessionModule);
-            default -> throw new BadRequestException("Accès interdit.");
-        };
+        List<StudentModuleComment> comments;
+        switch (user.getRole().getTitle()) {
+            case "SUPERADMIN":
+                comments = commentRepository.findByModuleAndSessionFiltered(moduleId, sessionId);
+                break;
+            case "ADMIN":
+                comments = commentRepository.findByEstablishmentAndModule(moduleId, sessionId, user.getEstablishment());
+                break;
+            case "TRAINER":
+                comments = commentRepository.findByModuleSessionForTrainer(moduleId, sessionId, user);
+                break;
+            case "STUDENT":
+                comments = commentRepository.findByStudentAndSessionModule(user, sessionModule);
+                break;
+            default:
+                throw new BadRequestException("Accès interdit.");
+        }
 
-        // Transformation en DTO pour simplifier la réponse
         return comments.stream()
                 .map(comment -> new StudentModuleCommentDTO(
                         comment.getId(),

@@ -37,5 +37,26 @@ public interface StudentModuleCommentRepository extends JpaRepository<StudentMod
     List<StudentModuleComment> findBySessionForTrainer(@Param("sessionId") Long sessionId,
                                                        @Param("trainer") User trainer);
 
+    @Query("SELECT smc FROM StudentModuleComment smc WHERE smc.sessionModule.module.id = :moduleId " +
+            "AND smc.sessionModule.session.id = :sessionId " +
+            "AND smc.sessionModule.session.establishment = :establishment")
+    List<StudentModuleComment> findByEstablishmentAndModule(@Param("moduleId") Long moduleId,
+                                                            @Param("sessionId") Long sessionId,
+                                                            @Param("establishment") Establishment establishment);
+
+    @Query("SELECT smc FROM StudentModuleComment smc WHERE smc.sessionModule.module.id = :moduleId " +
+            "AND smc.sessionModule.session.id = :sessionId")
+    List<StudentModuleComment> findByModuleAndSessionFiltered(@Param("moduleId") Long moduleId,
+                                                              @Param("sessionId") Long sessionId);
+
+    @Query("SELECT smc FROM StudentModuleComment smc " +
+            "WHERE smc.sessionModule.session.id = :sessionId " +
+            "AND smc.sessionModule.module.id = :moduleId " +
+            "AND smc.sessionModule.trainer = :trainer")
+    List<StudentModuleComment> findByModuleSessionForTrainer(@Param("moduleId") Long moduleId,
+                                                             @Param("sessionId") Long sessionId,
+                                                             @Param("trainer") User trainer);
+
+
     boolean existsByStudentAndSessionModule(User student, SessionModule sessionModule);
 }

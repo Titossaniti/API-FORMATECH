@@ -147,6 +147,10 @@ public class UserService implements UserDetailsService {
             throw new BadRequestException("Vous ne pouvez ajouter des étudiants que dans votre établissement.");
         }
 
+        // Récupération du rôle STUDENT une seule fois
+        Role studentRole = roleRepository.findByTitle("STUDENT")
+                .orElseThrow(() -> new ResourceNotFoundException("Rôle STUDENT introuvable"));
+
         return students.stream().map(student -> {
 
             // Vérifier si l'étudiant existe déjà
@@ -156,18 +160,15 @@ public class UserService implements UserDetailsService {
             if (existingStudent.isPresent()) {
                 studentToSave = existingStudent.get();
             } else {
-                // Créer un nouvel étudiant
-                student.setRole(roleRepository.findByTitle("STUDENT")
-                        .orElseThrow(() -> new ResourceNotFoundException("Rôle STUDENT introuvable")));
+                // Assigner le rôle STUDENT directement
+                student.setRole(studentRole);
                 student.setPassword(passwordEncoder.encode(student.getPassword()));
 
                 // Enregistrer l'utilisateur
                 studentToSave = userRepository.save(student);
             }
 
-            // Vérifier si l'étudiant est déjà assigné à cette session
             if (!sessionUserRepository.existsByUserIdAndSessionId(studentToSave.getId(), sessionId)) {
-                // Ajouter l'étudiant à la session
                 SessionUser sessionUser = new SessionUser();
                 sessionUser.setUser(studentToSave);
                 sessionUser.setSession(session);

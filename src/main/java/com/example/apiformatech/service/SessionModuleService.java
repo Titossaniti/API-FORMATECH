@@ -146,5 +146,18 @@ public class SessionModuleService {
                 .toList();
     }
 
+    // Récupérer tous les modules liés à une session
+    public List<Module> getModulesBySession(Long sessionId) {
+        List<SessionModule> sessionModules = sessionModuleRepository.findBySession_Id(sessionId);
+
+        if (sessionModules.isEmpty()) {
+            throw new ResourceNotFoundException("Aucun module trouvé pour cette session.");
+        }
+
+        return sessionModules.stream()
+                .map(SessionModule::getModule) // On extrait uniquement les modules
+                .collect(Collectors.toList());
+    }
+
 }
 

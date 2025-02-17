@@ -63,6 +63,13 @@ public class SessionModuleController {
         return ResponseEntity.ok(modules);
     }
 
+    // Récupérer tous les modules d'une session
+    @GetMapping("/{sessionId}/modules")
+    public ResponseEntity<List<Module>> getModulesBySession(@PathVariable Long sessionId) {
+        List<Module> modules = sessionModuleService.getModulesBySession(sessionId);
+        return ResponseEntity.ok(modules);
+    }
+
     // Supprimer une relation session-module
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSessionModule(@PathVariable Long id) {

@@ -6,6 +6,7 @@ import com.example.apiformatech.model.Module;
 import com.example.apiformatech.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -40,4 +41,8 @@ public interface SessionModuleRepository extends JpaRepository<SessionModule, Lo
     @Query("SELECT sm FROM SessionModule sm WHERE sm.session.id IN " +
             "(SELECT su.session.id FROM SessionUser su WHERE su.user.id = :studentId)")
     List<SessionModule> findBySession_StudentsId(Long studentId);
+
+    @Query("SELECT sm FROM SessionModule sm WHERE sm.session.id = :sessionId")
+    List<SessionModule> findBySession_Id(@Param("sessionId") Long sessionId);
+
 }
