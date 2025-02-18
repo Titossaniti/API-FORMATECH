@@ -53,7 +53,7 @@ public class UserController {
         }
     }
 
-    // Créer un formateur (seuls Admin et Superadmin peuvent le faire)
+    // Create TRAINER (only admin and super admin can do it)
     @PostMapping("/trainer")
     public ResponseEntity<?> createTrainer(
             @RequestBody CreateTrainerDTO trainerDTO,
